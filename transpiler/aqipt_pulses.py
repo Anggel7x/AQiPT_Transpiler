@@ -106,7 +106,7 @@ class SquarePulse():
         t_start: Optional[float] = None,
         t_end: Optional[float]  = None,
         amp: Optional[float] = 1,
-        width: Optional[int] = 0.25,
+        width: Optional[int] = 0,
         tp_window: Optional[int] = PULSE_PARAMS.dyn_time,
         name: Optional[str] = None, 
         color: Optional[str] = None, 
@@ -129,38 +129,38 @@ class SquarePulse():
         self.omega = omega
 
        
-        self._set_area()
-        self._set_times()
+        self._set_parameters()
+        
         self.function = self._function()
 
-    def _set_area(self):
-        if self.area == None and self.omega == None:
-            self.width = self.width
-        elif self.t_start != None and self.t_end != None:
-            self.width = self.t_end - self.t_start
-            self.area = self.width*(8*np.pi*self.omega*abs(self.amp))
-        elif self.width != None and self.omega != None:
-            self.area = self.width*(8*np.pi*self.omega*abs(self.amp))
-        else:
-            self.width = self._width()
-
-    def _set_times(self):
-            
-        if self.t_o == None and self.t_start == None:
-            raise Exception('No time especifications: central time and start time can\'t be both None')
-    
-        elif self.t_o != None and self.t_start == None:
-            self.t_start = self.t_o - 0.5*self.tg
-            self.t_end = self.t_start +self.tg
-
-        elif self.t_o == None and self.t_start != None:
-            self.t_end = self.t_start + self.tg
-            self.t_o = self.t_start + 0.5*self.tg
         
-        elif self.t_o != None and self.t_start != None:
-            if self.t_o != self.t_start + 0.5*self.tg:
-                raise Exception(f'Error, no matching times: {self.t_o} != {self.t_start + 0.5*self.tg}' )
-
+    def _set_parameters(self):
+        
+        #Times setting (t_start and t_end)
+        
+        if self.t_start != None and self.t_end != None:
+            self.width = (self.t_end - self.t_start)/2
+            self.t_o = self.t_start + self.width
+            self.tg = self.width * 2
+            self.area = 8*np.pi*self.omega*np.abs(self.amp)*self.width
+        
+        # Area and starting setting
+        elif self.area != None and self.t_start != None:
+            self.width = self.area/(8*np.pi*self.omega*np.abs(self.amp))
+            self._width_adjustment()
+            self.t_o = self.t_start + self.width
+            self.tg = self.width * 2
+            self.t_end = self.t_start + self.tg
+    
+    def _width_adjustment(self):
+        i = 3
+        width = self.width
+        while True:
+            if width > 0.1 or i > 101: break
+            width = width*i
+            i = i + 2
+        self.width = width
+        
     def _function(self):
 
         args_list = {'amp': self.amp,
@@ -178,18 +178,8 @@ class SquarePulse():
     def info(self):
         return f'Square Pulse ({self.name}) - Amp:{self.amp:0.5f}, Center: {self.t_o:0.2f}, Width: {self.width:0.5f}'
 
-    def _width(self):
-
-        #assert self.omega != None and self.area != None
-
-        width = (self.area)/(8*np.pi*self.omega*abs(self.amp))
+    
         
-        i = 3
-        while True:
-            if width > 0.06 or i > 101: break
-            width = width*i
-            i = i + 2
-        return width
 
 class CarrierPulse():
 
