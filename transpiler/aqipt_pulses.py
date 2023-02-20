@@ -1,7 +1,7 @@
 import numpy as np
-import AQiPT.AQiPT_core as aqipt
+import AQiPT.AQiPTcore as aqipt
 from AQiPT.modules.control import AQiPTcontrol as control
-from typing import Optional
+from typing import Optional, Any
 from math import pow
 
 
@@ -81,7 +81,7 @@ class GaussianPulse():
                     'type': self.type}
 
         tp = np.linspace(0, self.tp_window, int((self.tp_window - 0)*PULSE_PARAMS.sampling/PULSE_PARAMS.dyn_time));
-        func, _ = control.function(tp, args_list).gaussian()
+        func = control.function(tp, args_list).gaussian()
         return func
 
     def info(self):
@@ -172,7 +172,7 @@ class SquarePulse():
                     'type': self.type}
         
         tp = np.linspace(0, self.tp_window, int((self.tp_window-0)*PULSE_PARAMS.sampling/PULSE_PARAMS.dyn_time)); #time domain function
-        func, plot = control.function(tp, args_list).step();
+        func = control.function(tp, args_list).step()
         return func
 
     def info(self):
