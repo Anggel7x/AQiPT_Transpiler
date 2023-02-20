@@ -4,5 +4,8 @@ transpilador.code-workspace
 venv/
 extras/
 notebooks/
-AQiPT/
 *.ipynb
+*.png
+*.csv
+*.bmp
+*.md

@@ -1,0 +1,16 @@
+Metadata-Version: 2.1
+Name: AQiPT
+Version: 1.0.0
+Summary: AQiPT: Atomic Quantum information Processing Toolbox 
+Home-page: https://github.com/manuelmorgado/AQiPT/
+Author: Manuel Morgado, S. Whitlock
+Author-email: morgadovargas@unistra.fr, whitlock@unistra.fr 
+License: BSD-3
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Topic :: Quantum Information
+Classifier: License :: OSI Approved :: BSD-3 License
+License-File: LICENSE
+
+UNKNOWN
+
