@@ -3,7 +3,7 @@
 # Author(s): Manuel Morgado. Universite de Strasbourg. Laboratory of Exotic Quantum Matter - CESQ
 # Contributor(s): 
 # Created: 2021-04-08
-# Last update: 2022-06-12
+# Last update: 2022-10-07
 
 
 #libs
@@ -21,6 +21,7 @@ from typing import Iterator, List
 # warnings.filterwarnings('ignore')
 
 import networkx as nx
+from tqdm import tqdm
 
 #####################################################################################################
 #atomicModel AQiPT class
@@ -185,7 +186,7 @@ def totBlockadeInt(atoms_pos, at_nr, excitations_idx=None, qdim=2, c_val=1):
                 BlockadeInt_op += intStrenght*(block_ope[i]*block_ope[j]); #total blockade interaction operator sum(Vij |...ri...><...rj...|)
     return BlockadeInt_op
 
-# Added a change to include the complex analysis 20/02/2023
+
 class atomicModel:
     
     """
@@ -706,7 +707,6 @@ def _swapElements(list, pos1, pos2):
     list[pos1], list[pos2] = list[pos2], list[pos1]
     return list
 
-
 class atomicQRegister:
     
     """
@@ -1015,7 +1015,7 @@ class atomicQRegister:
             _basis.append(nqString2nqKet(lst2string(basis), None, bitsdim=self.lstNrlevels));
     
     def _buildInteractingBasis(self):
-        
+
         '''
             Build the basis (states and operators) for the interactions basis in the connectivity map, that represent the 
             interactions between Rydberg states. 
@@ -1238,7 +1238,16 @@ class atomicQRegister:
             else:
                 _Vtot = self.nC3Interaction*self._intbasis[0][1][idx_basis];
 
-        self.tnHamiltonian.append(_Vtot); #add the interaction term as always ON Hamiltonian
+            print(idx_basis, self.nC3Interaction, self._intbasis[0][1][idx_basis])
+        try:
+            self.tnHamiltonian.append(_Vtot); #add the interaction term as always ON Hamiltonian
+        except:
+            self.nHamiltonian+= _Vtot; #add the interaction term as always ON Hamiltonian
+
+            # print(np.nonzero(_Vtot)[0], '\n ', np.nonzero(_Vtot)[1])
+            # print(_Vtot.full)
+            # print(np.matrix(_Vtot))
+            return np.matrix(_Vtot)
     
     def _getC6Strength(self, c6_val=1, idx=None):
 
@@ -1269,6 +1278,8 @@ class atomicQRegister:
             c3_val : value of the C3 coefficient
 
         '''
+        print(self.layout[self._pairInteraction_idx[idx][0]][0], self.layout[self._pairInteraction_idx[idx][0]][1],
+            self.layout[self._pairInteraction_idx[idx][1]][0], self.layout[self._pairInteraction_idx[idx][1]][1])
         self.nC3Interaction = c3_val/eucdist(self.layout[self._pairInteraction_idx[idx][0]][0], self.layout[self._pairInteraction_idx[idx][0]][1],
                                              self.layout[self._pairInteraction_idx[idx][1]][0], self.layout[self._pairInteraction_idx[idx][1]][1]);
 
@@ -1284,7 +1295,7 @@ class atomicQRegister:
         '''
         return self.simRes
     
-    def showResults(self, resultseq=None, resultlabel=None, figureSize=(10,6), figure=None, axis=None):
+    def showResults(self, legendON=True, resultseq=None, resultlabel=None, figureSize=(10,6), figure=None, axis=None):
         '''
             Return Results for the N atomicModel() that constitute the atomicQRegister().
         '''
@@ -1292,7 +1303,8 @@ class atomicQRegister:
         resultseq = self.simRes;
         if resultlabel == None:
             resultlabel = [lst2str(i) for i in list(itertools.product(*[range(AM.Nrlevels) for AM in self._AMs]))];
-
+            self._basisString = resultlabel;
+            
         if figure==None and axis==None:
             
             fig, axs = plt.subplots(figsize=figureSize);
@@ -1303,7 +1315,8 @@ class atomicQRegister:
                 else:
                     axs.plot(self.times, resultseq.expect[i], label=i);
 
-            plt.legend();
+            if legendON:
+                plt.legend();
             plt.xlabel('Time', fontsize=18);
             plt.ylabel('Population', fontsize=18)
 
@@ -1323,7 +1336,8 @@ class atomicQRegister:
                 else:
                     axs.plot(self.times, resultseq.expect[i], label=i);
 
-            plt.legend();
+            if legendON:        
+                plt.legend();
             plt.xlabel('Time', fontsize=18);
             plt.ylabel('Population', fontsize=18)
 
@@ -1359,7 +1373,6 @@ class atomicQRegister:
         print('Violet nodes: Rydberg states. Blue nodes: Ground states')
         return self._graphRegister
 
-
 #####################################################################################################
 #Scans-functions for atomicModels (AQiPT)
 #####################################################################################################
@@ -1386,7 +1399,7 @@ def update_params(scanNr1, scan_idx, scanNr2, pseudofix_idx, params, scanVariabl
         
     return _bufParams
 
-def scan_i(scanNr1, scan_idx1, scanNr2, scan_idx2, params, scanValues, times, Nrlevels, psi0, name, AM):
+def scan_i(scanNr1, scan_idx1, scanNr2, scan_idx2, params, scanValues, times, Nrlevels, psi0, name, AM, result_idx):
     
     if AM is None:
 
@@ -1413,16 +1426,31 @@ def scan_i(scanNr1, scan_idx1, scanNr2, scan_idx2, params, scanValues, times, Nr
             
 
     AM.playSim(); #playing simulation
-    return AM.getResult().expect[0][len(times)-1]; #returning last value of simulation
+
+    if result_idx==0:
+        return AM.getResult().expect[0][len(times)-1]; #returning last value of simulation
+
+    elif result_idx==1:
+        return AM.getResult().expect[1][len(times)-1]; #returning last value of simulation
+
+    elif result_idx==2:
+        return AM.getResult().expect[2][len(times)-1]; #returning last value of simulation
+
+    elif result_idx==3:
+        return AM.getResult().expect[3][len(times)-1]; #returning last value of simulation
+
+    else:
+        return [AM.getResult().expect[k][len(times)-1] for k in range(Nrlevels-1)]; #returning last value of simulation
+
                  
-def Scan(scan, params, times, Nrlevels, psi0, name, atomicModel=None,):
+def Scan(scan, params, times, Nrlevels, psi0, name, atomicModel=None, population_idx='all'):
     
     AM = atomicModel;
     scanValues = get_scanValues(scan, params);
     
     idxs = [len(VAR[2]) for VAR in scanValues]
     
-    for idx_scan in range(len(idxs)):
+    for idx_scan in tqdm(range(len(idxs))):
         
         k=1;
         scan_kResults = [];
@@ -1437,9 +1465,9 @@ def Scan(scan, params, times, Nrlevels, psi0, name, atomicModel=None,):
                 for idx2 in range(len(scanValues[idx_scan2][2])): #runs over all values of variable_j
 
                     if AM==None:
-                        scan_iResults.append(scan_i(idx_scan, idx1, idx_scan2, idx2, params, scanValues, times, Nrlevels, psi0, name, AM));
+                        scan_iResults.append(scan_i(idx_scan, idx1, idx_scan2, idx2, params, scanValues, times, Nrlevels, psi0, name, AM, population_idx));
                     else:
-                        scan_iResults.append(scan_i(idx_scan, dx1, idx_scan2, idx2, params, scanValues, times, Nrlevels, psi0, name, AM));
+                        scan_iResults.append(scan_i(idx_scan, dx1, idx_scan2, idx2, params, scanValues, times, Nrlevels, psi0, name, AM,  population_idx));
                 idx_scan2+=1;
 
                 scan_jResults.append(scan_iResults);
