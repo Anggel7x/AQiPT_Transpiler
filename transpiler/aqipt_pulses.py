@@ -13,63 +13,52 @@ class GaussianPulse():
     def __init__(self,
                 t_o: Optional[float] = None, 
                 t_start: Optional[float] = None,
+                t_end: Optional[float]  = None,
                 amp: Optional[int] = 1, 
                 g_std: Optional[float] = np.pi/40,
                 tp_window: Optional[int] = PULSE_PARAMS.dyn_time ,
                 name: Optional[str] = None, 
                 color: Optional[str] = None, 
                 type: Optional[str] = None,
-                area: Optional[float] = None,
-                omega: Optional[float] = None,
+                area: Optional[float] = None
                 
         ):
         self.t_o = t_o
         self.t_start = t_start
-        self.t_end = None
+        self.t_end = t_end
 
         self.g_center = t_o
         self.g_Amp = amp
         self.g_std = g_std
         self.area = area
-        self.omega = omega
 
         self.tp_window = tp_window
         self.name = name
         self.color = color
         self.type = type
         
-        self._set_area()
-        self._set_times()
+        self._set_parameters()
         self.function = self._function()
         self.width = self.t_end - self.t_start
-
-    def _set_area(self):
-        if self.area == None and self.omega == None:
-            self.g_std = self.g_std
-        else:
-            self.g_std = self._std()
-
-    def _set_times(self):
-
-        self.tg = 6*pow(np.pi, 0.5)*self.g_std
-
-        if self.t_o == None and self.t_start == None:
-            raise Exception('No time especifications: central time and start time can\'t be both None')
     
-        elif self.t_o != None and self.t_start == None:
-            self.t_start = self.t_o - 0.5*self.tg
-            self.t_end = self.t_start +self.tg
-
-        elif self.t_o == None and self.t_start != None:
-            self.t_end = self.t_start + self.tg
-            self.t_o = self.t_start + 0.5*self.tg
+    
+    # TODO: cambiar los set parameters a algo mas parecido en el pulso cuadrado
+    def _set_parameters(self):
+        if self.t_start != None and self.t_end !=  None:
+            self.width = (self.t_end - self.t_start)/2
+            self.t_o = self.t_start + self.width
+            self.g_center = self.t_o
+            self.g_std = self.width/4
+            self.area = 1/2*self.g_std*pow(4*np.pi, 1/2)*np.abs(self.g_Amp)
+    
+        elif self.area != None and self.t_start != None:
+            self.g_std = 1/2*(self.area/(pow(4*np.pi, 1/2)*np.abs(self.g_Amp)))
+            self.width = self.g_std*4
+            self._std_adjustment()
+            self.t_o = self.t_start + self.width
+            self.g_center = self.t_o
+            self.t_end = self.t_start + 2*self.width
         
-        elif self.t_o != None and self.t_start != None:
-            if self.t_o != self.t_start + 0.5*self.tg:
-                raise Exception(f'Error, no matching times: {self.t_o} != {self.t_start + 0.5*self.tg}' )
-
-        self.g_center = self.t_o
-    
     def _function(self):
 
         args_list = {'g_Amp': self.g_Amp,
@@ -87,18 +76,18 @@ class GaussianPulse():
     def info(self):
         return f'Gaussian Pulse ({self.name}) - Amp:{self.g_Amp:0.5f}, Center: {self.g_center:0.2f}, Std: {self.g_std:0.5f}'
 
-    def _std(self):
+    def _std_adjustment(self):
 
-        assert self.omega != None and self.area != None
-
-        std = (self.area)/(pow(4.0*np.pi, 3/2)*abs(self.g_Amp)*self.omega)
-
-        i = 3
-        while True:
-            if (std > 0.05 or i > 10000): break
-            std = std*i 
-            i = i + 2 
-        return std
+        while self.width < 0.05:
+            self.g_std *= 2
+            self.width = self.g_std*4
+            self.g_Amp /= 2
+            
+        while self.width > 1:
+            self.g_std /= 2
+            self.width = self.g_std*4
+            self.g_Amp *= 2
+            
 
 class SquarePulse():
     def __init__(self,
@@ -138,28 +127,32 @@ class SquarePulse():
         
         #Times setting (t_start and t_end)
         
+        # The area carries a factor of 1/2 over the calculations given the form of the Hamiltonian
+        
         if self.t_start != None and self.t_end != None:
             self.width = (self.t_end - self.t_start)/2
             self.t_o = self.t_start + self.width
             self.tg = self.width * 2
-            self.area = 8*np.pi*self.omega*np.abs(self.amp)*self.width
+            self.area = 1/2*self.tg*np.abs(self.amp)
         
         # Area and starting setting
         elif self.area != None and self.t_start != None:
-            self.width = self.area/(8*np.pi*self.omega*np.abs(self.amp))
+            self.width = 1/4*self.area/(np.abs(self.amp))
             self._width_adjustment()
             self.t_o = self.t_start + self.width
             self.tg = self.width * 2
             self.t_end = self.t_start + self.tg
     
     def _width_adjustment(self):
-        i = 3
-        width = self.width
-        while True:
-            if width > 0.1 or i > 101: break
-            width = width*i
-            i = i + 2
-        self.width = width
+        
+        while self.width < 0.05:
+            self.width *= 2 
+            self.amp /= 2
+            
+        while self.width > 1:
+            self.width /= 2
+            self.amp *= 2
+            
         
     def _function(self):
 
@@ -178,8 +171,6 @@ class SquarePulse():
     def info(self):
         return f'Square Pulse ({self.name}) - Amp:{self.amp:0.5f}, Center: {self.t_o:0.2f}, Width: {self.width:0.5f}'
 
-    
-        
 
 class CarrierPulse():
 
@@ -230,7 +221,7 @@ class X180GaussianPulse(GaussianPulse):
                 name: Optional[str] = None, 
                 color: Optional[str] = None, 
                 type: Optional[str] = None,
-                omega: Optional[float] = None,
+                
                 
         ):
 
@@ -242,8 +233,7 @@ class X180GaussianPulse(GaussianPulse):
             name = name,
             color = color,
             type = type,
-            area = np.pi,  #Constant Area 
-            omega = omega,
+            area = np.pi  #Constant Area 
             )
 
 class X90GaussianPulse(GaussianPulse):
@@ -256,8 +246,7 @@ class X90GaussianPulse(GaussianPulse):
                 name: Optional[str] = None, 
                 color: Optional[str] = None, 
                 type: Optional[str] = None,
-                omega: Optional[float] = None,
-                
+            
         ):
 
         super().__init__(t_o = t_o,
@@ -268,8 +257,7 @@ class X90GaussianPulse(GaussianPulse):
             name = name,
             color = color,
             type = type,
-            area = np.pi/2,  #Constant Area 
-            omega = omega,
+            area = np.pi/2  #Constant Area
             )
 
 class X360GaussianPulse(GaussianPulse):
@@ -281,9 +269,7 @@ class X360GaussianPulse(GaussianPulse):
                 tp_window: Optional[int] = PULSE_PARAMS.dyn_time ,
                 name: Optional[str] = None, 
                 color: Optional[str] = None, 
-                type: Optional[str] = None,
-                omega: Optional[float] = None,
-                
+                type: Optional[str] = None,     
         ):
 
         super().__init__(t_o = t_o,
@@ -294,8 +280,7 @@ class X360GaussianPulse(GaussianPulse):
             name = name,
             color = color,
             type = type,
-            area = 2*np.pi,  #Constant Area 
-            omega = omega,
+            area = 2*np.pi  #Constant Area 
             )
 
 class ConstantPulse(SquarePulse):
@@ -303,7 +288,6 @@ class ConstantPulse(SquarePulse):
         amp: Optional[float] = 1,
         tp_window: Optional[int] = PULSE_PARAMS.dyn_time,
         name: Optional[str] = None, 
-        omega: Optional[float] = None,
     ):  
         super().__init__(
             t_o = 1,
@@ -313,8 +297,7 @@ class ConstantPulse(SquarePulse):
             name = name, 
             color  = None , 
             type = None,
-            area = 10000,
-            omega = omega,
+            area = 10000
         ) 
 
 class X180SquarePulse(SquarePulse):
@@ -326,7 +309,6 @@ class X180SquarePulse(SquarePulse):
         name: Optional[str] = None, 
         color: Optional[str] = None, 
         type: Optional[str] = None,
-        omega: Optional[float] = None,
     ):  
 
         super().__init__(
@@ -337,8 +319,7 @@ class X180SquarePulse(SquarePulse):
             name = name, 
             color  = color , 
             type = type,
-            area = np.pi,
-            omega = omega,
+            area = np.pi
         ) 
 
 class X90SquarePulse(SquarePulse):
@@ -350,7 +331,6 @@ class X90SquarePulse(SquarePulse):
         name: Optional[str] = None, 
         color: Optional[str] = None, 
         type: Optional[str] = None,
-        omega: Optional[float] = None,
     ):  
 
         super().__init__(
@@ -361,8 +341,7 @@ class X90SquarePulse(SquarePulse):
             name = name, 
             color  = color , 
             type = type,
-            area = np.pi/2,
-            omega = omega,
+            area = np.pi/2
         ) 
 
 class X360SquarePulse(SquarePulse):
@@ -374,7 +353,6 @@ class X360SquarePulse(SquarePulse):
         name: Optional[str] = None, 
         color: Optional[str] = None, 
         type: Optional[str] = None,
-        omega: Optional[float] = None,
     ):  
 
         super().__init__(
@@ -385,11 +363,10 @@ class X360SquarePulse(SquarePulse):
             name = name, 
             color  = color , 
             type = type,
-            area = 2*np.pi,
-            omega = omega,
+            area = 2*np.pi
         ) 
 
 # Constant Pulses
-CERO_FUNCTION = SquarePulse(t_start = 0, amp=0)
+CERO_FUNCTION = SquarePulse(t_start = 0, t_end=0, amp=0)
 
 
