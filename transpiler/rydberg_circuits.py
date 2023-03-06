@@ -54,11 +54,49 @@ class RydbergQubitSchedule():
 
             return coupling
 
-        self.coupling_pulses = merge(self.coupling_pulses, 'Coupling')
-        self.detuning_pulses = merge(self.detuning_pulses, 'Detuning')
+
+class RydbergQubitSchedule():
+    def __init__(self,
+        coupling_pulses: Any,
+        detuning_pulses: Any, 
+        times = PULSE_PARAMS.timebase()
+    ):
+
+        self.coupling_pulses = coupling_pulses
+        self.detuning_pulses = detuning_pulses
+        self.times = times
+
+    def _merge_pulses(self):
+
+
+        self.coupling_pulses = merge_pulses(self.coupling_pulses, 'Coupling')
+        self.detuning_pulses = merge_pulses(self.detuning_pulses, 'Detuning')
+        
+    def add_function(self, funct: np.ndarray, where : str, type = "coupling"):
+        
+        if type == "coupling":
+            schedule1 = self.coupling_pulses
+        elif type == "detuning":
+            schedule1 = self.detuning_pulses
+        funct_1 = schedule1[where][2]
+        
+        funct_1 += funct
+        
+        schedule1[where][2] = funct_1
+        
+    def add_coupling(self, schedule2: dict, what : str, type = "coupling"):
+        if type == "coupling":
+            schedule1 = self.coupling_pulses
+        elif type == "detuning":
+            schedule1 = self.detuning_pulses
+            
+        val = schedule2[what]
+        schedule1[what] = val    
 
     def plot_couplings(self, xmin: float = 0, xmax: float =T_MAX, plot:bool=True, name:str='', 
                         color = BLUE_HUE):
+        
+        self._merge_pulses()
         times = self.times
         p_pulses = {}
 
