@@ -9,23 +9,7 @@ RED_HUE = ['firebrick','lightcoral','coral','chocolate']
 BLUE_HUE = ['turquoise', 'paleturquoise','darkturquoise','skyblue']
 PURPLE_HUE = ['slateblue', 'plum','violet','mediumorchid']
 
-class RydbergQubitSchedule():
-
-    def __init__(self,
-        coupling_pulses: Any,
-        detuning_pulses: Any, 
-        times = PULSE_PARAMS.timebase()
-    ):
-
-        self.coupling_pulses = coupling_pulses
-        self.detuning_pulses = detuning_pulses
-        self.times = times
-
-        self._merge_pulses()
-
-    def _merge_pulses(self):
-
-        def merge(pulses, name: str):
+def merge_pulses(pulses :dict, name: str):
             coupling = {}
             done = []
             k = 0
@@ -38,7 +22,6 @@ class RydbergQubitSchedule():
                 for j in range(len(values)):
                     
                     if i == j: continue
-                    
                     
                     v2 = values[j]
 
@@ -118,15 +101,27 @@ class RydbergQubitSchedule():
         
             if L == 1:
                 for pulse in p_pulses[key] :
-                    axis.plot(times, pulse, color=color[0])
-                    axis.fill_between(times, pulse,color=color[0], alpha=0.3)
-        
+                    abs_pulse = np.abs(pulse)
+                    angl_pulse = np.angle(pulse)/2
+                    
+                    axis.plot(times, angl_pulse, color=color[i+1 % 4], label="$\phi (t)$")
+                    axis.fill_between(times, angl_pulse, color=color[i+1 % 4], alpha=0.2)
+                    axis.plot(times, abs_pulse, color=color[i % 4], label="$\Omega (t)$")
+                    axis.fill_between(times, abs_pulse, color=color[i % 4], alpha=0.3)
+                   
+
                 axis.set_ylabel(f'{key}')
                 axis.set_xlim(xmin, xmax)
             else :
                 for pulse in p_pulses[key] :
-                    axis[i].plot(times, pulse, color=color[i])
-                    axis[i].fill_between(times, pulse, color=color[i], alpha=0.3)
+                    abs_pulse = np.abs(pulse)
+                    angl_pulse = np.angle(pulse)/2
+                    
+                    axis[i].plot(times, angl_pulse, color=color[i+1 % 4], label="$\phi (t)$")
+                    axis[i].fill_between(times, angl_pulse, color=color[i+1 % 4], alpha=0.2)
+                    axis[i].plot(times, abs_pulse, color=color[i % 4], label="$\Omega (t)$")
+                    axis[i].fill_between(times, abs_pulse, color=color[i % 4], alpha=0.3)
+                    
                     axis[i].set_ylabel(f'{key}')
                     axis[i].set_xlim(xmin, xmax)
         
@@ -134,6 +129,7 @@ class RydbergQubitSchedule():
         
         if not plot: return fig, axis
 
+        plt.legend()
         plt.show()
 
     def plot_detunings(self, 
@@ -199,7 +195,7 @@ class RydbergQubit():
         initial_state: Optional[int] = 0,
         name: Optional[str] = 'qubit',
         schedule: Optional[RydbergQubitSchedule] = None,
-
+        complex = True
     ):
         self.nr_levels = nr_levels
         self.rydberg_states = rydberg_states
@@ -209,6 +205,7 @@ class RydbergQubit():
         self.atomic_register = False
         self.schedule = schedule
         self.atom = None
+        self.complex = complex
 
     def build(self):
 
@@ -232,7 +229,7 @@ class RydbergQubit():
         pulsed_qubit.modelMap(plotON=False)
 
         pulsed_qubit.buildTHamiltonian()
-        pulsed_qubit.buildLindbladians()
+        if not self.complex: pulsed_qubit.buildLindbladians()
         pulsed_qubit.buildObservables()
 
         pulsed_qubit.playSim(mode='control')
@@ -255,7 +252,7 @@ class RydbergQubit():
         for i in range(sl):
             state = states[i]
             
-            axis[i].plot(times, state, color=color[i%4])
+            axis[i].plot(times, state, color=color[i % 4])
             axis[i].set_ylabel(f'State {i}', fontsize=14)
             axis[i].set_ylim(0,1)
             axis[i].vlines(x = range(0,12,2), ymin = 0, ymax =1, color = 'silver', linestyle='dotted')
