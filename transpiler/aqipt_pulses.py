@@ -49,18 +49,24 @@ class GaussianPulse():
             self.t_o = self.t_start + self.width
             self.g_center = self.t_o
             self.g_std = self.width/4
+            self.g_std = np.round(self.g_std, 5)
             self.area = 1/2*self.g_std*pow(4*np.pi, 1/2)*np.abs(self.g_Amp)
+            self.area = np.round(self.area, 5)
+            
     
-        elif self.area != None and self.t_start != None:
+        elif self.area != None and self.t_start != None: # Segundo modo
+            self.area = np.round(self.area, 5)
             self.g_std = 1/2*(self.area/(pow(4*np.pi, 1/2)*np.abs(self.g_Amp)))
             self.width = self.g_std*4
             self._std_adjustment()
+            self.g_std = np.round(self.g_std, 5)
+            self.width = self.g_std*4
             self.t_o = self.t_start + self.width
             self.g_center = self.t_o
             self.t_end = self.t_start + 2*self.width
         
     def _function(self):
-
+            
         args_list = {'g_Amp': self.g_Amp,
                     'g_center': self.g_center,
                     'g_std': self.g_std,
@@ -133,10 +139,11 @@ class SquarePulse():
             self.width = (self.t_end - self.t_start)/2
             self.t_o = self.t_start + self.width
             self.tg = self.width * 2
-            self.area = 1/2*self.tg*np.abs(self.amp)
+            self.area = np.round(1/2*self.tg*np.abs(self.amp), 5)
         
         # Area and starting setting
         elif self.area != None and self.t_start != None:
+            self.area = np.round(self.area, 5)
             self.width = 1/4*self.area/(np.abs(self.amp))
             self._width_adjustment()
             self.t_o = self.t_start + self.width
