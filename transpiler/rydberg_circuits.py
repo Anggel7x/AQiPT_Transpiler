@@ -82,6 +82,8 @@ class RydbergQubitSchedule():
         self._merge_pulses()
         times = self.times
         p_pulses = {}
+        
+        
 
         for key in self.coupling_pulses.keys():
             pair = self.coupling_pulses[key][0]
@@ -90,7 +92,8 @@ class RydbergQubitSchedule():
         for key in self.coupling_pulses.keys():
             pair = self.coupling_pulses[key][0]
             pulse = self.coupling_pulses[key][-1]
-            p_pulses[str(pair)].append(pulse)
+            omega = self.coupling_pulses[key][1]
+            p_pulses[str(pair)].append((pulse,omega))
     
         L = len(p_pulses.keys())
         fig, axis = plt.subplots(L, figsize=(16,2*L))
@@ -100,15 +103,21 @@ class RydbergQubitSchedule():
             key = list(p_pulses.keys())[i]
         
             if L == 1:
-                for pulse in p_pulses[key] :
-                    abs_pulse = np.abs(pulse)
+                for pulse, omega in p_pulses[key] :
+                    
+                    factor = omega / (2*np.pi)
+                    max_amp = np.max(np.abs(pulse))
+                    
+                    abs_pulse = np.abs(pulse)/max_amp
                     angl_pulse = np.angle(pulse)/2
                     
                     axis.plot(times, angl_pulse, color=color[i+1 % 4], label="$\phi (t)$")
                     axis.fill_between(times, angl_pulse, color=color[i+1 % 4], alpha=0.2)
                     axis.plot(times, abs_pulse, color=color[i % 4], label="$\Omega (t)$")
                     axis.fill_between(times, abs_pulse, color=color[i % 4], alpha=0.3)
-                   
+
+                    if factor != 1:
+                        axis.text(.01, .99, f'$\Omega = 2\pi{factor:0.0f}$', ha='left', va='top', transform=axis.transAxes)
 
                 axis.set_ylabel(f'{key}')
                 axis.set_xlim(xmin, xmax)
