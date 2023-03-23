@@ -326,7 +326,10 @@ class RydbergQuantumRegister():
         )
 
         atomic_register.buildTNHamiltonian()
-        atomic_register.buildNLindbladians()
+        try:
+            atomic_register.buildNLindbladians()
+        except:
+            pass
         atomic_register.buildNObservables()
         atomic_register.buildNinitState()
         
