@@ -42,9 +42,18 @@ class GaussianPulse():
         self.width = self.t_end - self.t_start
     
     
-    # TODO: cambiar los set parameters a algo mas parecido en el pulso cuadrado
+    
     def _set_parameters(self):
-        if self.t_start != None and self.t_end !=  None:
+        """Genera los parametros del pulso.
+        
+            -- 1er modo: Se le da un tiempo inicial 't_start' y un tiempo final 't_end'.
+                En este caso el ancho del pulso, el centro y el área ya están determinados.
+                
+            -- 2do modo: Se le da un área 'area' y un tiempo inicial 't_start'.
+                En este caso se determina la desviación estandar y el ancho (que debe ser ajustado), luego
+                se calcula el tiempo central del pulso y los demas parámetros.
+        """
+        if self.t_start != None and self.t_end !=  None: # Primer modo
             self.width = (self.t_end - self.t_start)/2
             self.t_o = self.t_start + self.width
             self.g_center = self.t_o
