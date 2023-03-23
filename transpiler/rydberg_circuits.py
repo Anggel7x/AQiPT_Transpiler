@@ -387,8 +387,6 @@ class RydbergQuantumRegister():
 
         fig, axis = plt.subplots(sl, figsize=(16, 1.7*sl))
 
-        csfont = {'fontname':'Roboto'}
-
         plt.setp(axis, yticks=[0, 0.5, 1])
         times = self.times
         for i in range(sl):
@@ -407,6 +405,6 @@ class RydbergQuantumRegister():
             plt.yticks([0,0.5,1])
 
         fig.suptitle('Population evolution', fontsize=24)
-        fig.supxlabel('Time', fontsize=18, **csfont)
+        fig.supxlabel('Time', fontsize=18)
         plt.show()
 
