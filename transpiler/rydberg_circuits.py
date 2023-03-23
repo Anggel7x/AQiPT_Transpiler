@@ -366,14 +366,14 @@ class RydbergQuantumRegister():
         if couplings:
             for i in range(len(self.qubits)):
                 qubit = self.qubits[i]
-                qubit.schedule.plot_couplings(xmin, xmax, name=f' Qubit {i}', color=color_coup)
+                qubit.schedule.plot_couplings(xmin, xmax, name=f' {qubit.name}', color=color_coup)
                 
                 
         
         if detunings:
             for i in range(len(self.qubits)):
                 qubit = self.qubits[i]
-                qubit.schedule.plot_detunings(xmin, xmax, name=f' Qubit {i}', color=color_det)
+                qubit.schedule.plot_detunings(xmin, xmax, name=f' {qubit.name}', color=color_det)
 
     def plot_results(self , color = PURPLE_HUE):
         simRes = self.atomic_register.getResult()
