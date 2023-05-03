@@ -23,14 +23,21 @@ class UxySchedule(GateSchedule):
         omega = self.omega
         
         if self.shape == "square":
-            pulse_1 = SquarePulse(t_start=self.t_start, area=self.theta/omega)
+            ShapedPulse = SquarePulse
+        elif self.shape == "gaussian":
+            ShapedPulse = GaussianPulse
+        else:
+            raise ValueError(f"{self.shape} is not a valid shape.")
+        
+        if self.theta == 0:    
+            pulse_1 = ShapedPulse(t_start=self.t_start, t_end=self.t_end)
             pulse_t1 = SquarePulse(t_start=self.t_start, t_end=pulse_1.t_end)
             complx_pulse_1 = pulse_1.function*np.exp(+1j*2*self.phi*pulse_t1.function)
-        elif self.shape == "gaussian":
-            pulse_1 = GaussianPulse(t_start=self.t_start, area=self.theta/omega)
-            pulse_t1 = SquarePulse(t_start=pulse_1.t_start, t_end=pulse_1.t_end)
+        else:
+            pulse_1 = ShapedPulse(t_start=self.t_start, area=self.theta/omega)
+            pulse_t1 = SquarePulse(t_start=self.t_start, t_end=pulse_1.t_end)
             complx_pulse_1 = pulse_1.function*np.exp(+1j*2*self.phi*pulse_t1.function)
-
+            
         self.t_end = pulse_1.t_end
         
         coupling = [
