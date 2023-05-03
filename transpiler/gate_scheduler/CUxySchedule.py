@@ -28,8 +28,15 @@ class CUxySchedule(GateSchedule):
                                             freq=self.freq, 
                                             pair=self.pair[0],
                                             shape=self.shape)
-        control_schedule = CeroSchedule()
+        control_schedule = UxySchedule(
+                                        theta=0,
+                                        t_start=self.t_start, 
+                                        freq=self.freq, 
+                                        pair=self.pair[0],
+                                        shape=self.shape
+                                    )
         
+        self.t_end = target_schedule.t_end
         self.q_schedule = (control_schedule, target_schedule)
 
     
