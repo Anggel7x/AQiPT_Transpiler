@@ -48,6 +48,8 @@ class RydbergQubitSchedule():
         self.coupling_pulses = coupling_pulses
         self.detuning_pulses = detuning_pulses
         self.times = times
+        
+        self._merge_pulses()
 
     def _merge_pulses(self):
 
@@ -77,9 +79,8 @@ class RydbergQubitSchedule():
         schedule1[what] = val    
 
     def plot_couplings(self, xmin: float = 0, xmax: float =T_MAX, plot:bool=True, name:str='', 
-                        color = BLUE_HUE):
+                        color = BLUE_HUE, phase=True, amp=True):
         
-        self._merge_pulses()
         times = self.times
         p_pulses = {}
         
@@ -111,34 +112,47 @@ class RydbergQubitSchedule():
                     abs_pulse = np.abs(pulse)/max_amp
                     angl_pulse = np.angle(pulse)/2
                     
-                    axis.plot(times, angl_pulse, color=color[i+1 % 4], label="$\phi (t)$")
-                    axis.fill_between(times, angl_pulse, color=color[i+1 % 4], alpha=0.2)
-                    axis.plot(times, abs_pulse, color=color[i % 4], label="$\Omega (t)$")
-                    axis.fill_between(times, abs_pulse, color=color[i % 4], alpha=0.3)
+                    if phase:
+                        axis.plot(times, angl_pulse, color=color[i+1 % 4], label="$\phi (t)$")
+                        axis.fill_between(times, angl_pulse, color=color[i+1 % 4], alpha=0.2)
+                    if amp:
+                        axis.plot(times, abs_pulse, color=color[i % 4], label="$\Omega (t)$")
+                        axis.fill_between(times, abs_pulse, color=color[i % 4], alpha=0.3)
 
                     if factor != 1:
-                        axis.text(.01, .99, f'$\Omega = 2\pi{factor:0.0f}$', ha='left', va='top', transform=axis.transAxes)
+                        axis.text(.01, .99, f'$\Omega = 2\pi{factor:0.2f}$', ha='left', va='top', transform=axis.transAxes)
 
                 axis.set_ylabel(f'{key}')
                 axis.set_xlim(xmin, xmax)
             else :
-                for pulse in p_pulses[key] :
+                for pulse, omega in p_pulses[key] :
+                    factor = omega / (2*np.pi)
+                    max_amp = np.max(np.abs(pulse))
+                    
                     abs_pulse = np.abs(pulse)
                     angl_pulse = np.angle(pulse)/2
                     
-                    axis[i].plot(times, angl_pulse, color=color[i+1 % 4], label="$\phi (t)$")
-                    axis[i].fill_between(times, angl_pulse, color=color[i+1 % 4], alpha=0.2)
-                    axis[i].plot(times, abs_pulse, color=color[i % 4], label="$\Omega (t)$")
-                    axis[i].fill_between(times, abs_pulse, color=color[i % 4], alpha=0.3)
+                    # correction of the phase when pi 
+                    angl_pulse[ angl_pulse == np.angle(np.exp(+1j*2*np.pi))/2] = np.pi
                     
-                    axis[i].set_ylabel(f'{key}')
-                    axis[i].set_xlim(xmin, xmax)
+                    if phase:
+                        axis[i].plot(times, angl_pulse, color=color[1], label="$\phi (t)$")
+                        axis[i].fill_between(times, angl_pulse, color=color[1], alpha=0.2)
+                    if amp:
+                        axis[i].plot(times, abs_pulse, color=color[0], label="$\Omega (t)$")
+                        axis[i].fill_between(times, abs_pulse, color=color[0], alpha=0.3)
+
+                    
+                    axis[i].text(.01, .99, f'$\Omega = 2\pi{factor:0.2f}$', ha='left', va='top', transform=axis[i].transAxes)
+
+                axis[i].set_ylabel(f'{key}')
+                axis[i].set_xlim(xmin, xmax)
+                axis[i].legend()
         
         fig.suptitle(f'Couplings {name}', fontsize=16)
         
         if not plot: return fig, axis
 
-        plt.legend()
         plt.show()
 
     def plot_detunings(self, 
