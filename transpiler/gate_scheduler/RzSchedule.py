@@ -22,6 +22,7 @@ class RzSchedule(UxySchedule):
         R.q_schedule.add_function(Ry.q_schedule.coupling_pulses["Coupling0"][2], "Coupling0")
         
         self.q_schedule = R.q_schedule
+        self.t_end = R.t_end
         return R
 
    
