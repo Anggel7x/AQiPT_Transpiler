@@ -14,7 +14,7 @@ class RySchedule(UxySchedule):
         super().__init__(theta, -np.pi/2, t_start, freq, shape)  
 
     def _schedule(self):
-        
         Ry = UxySchedule(self.theta, -np.pi/2, self.t_start, self.freq, self.shape)
+        self.t_end = Ry.t_end
         self.q_schedule = Ry.q_schedule
         return Ry
