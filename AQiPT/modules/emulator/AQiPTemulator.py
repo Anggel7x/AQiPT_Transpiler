@@ -3,7 +3,7 @@
 # Author(s): Manuel Morgado. Universite de Strasbourg. Laboratory of Exotic Quantum Matter - CESQ
 # Contributor(s): 
 # Created: 2021-04-08
-# Last update: 2022-10-07
+# Last update: 2023-05-07
 
 
 #libs
@@ -12,10 +12,12 @@ import qutip as qt
 
 import matplotlib.pyplot as plt
 import matplotlib
+import plotly.graph_objects as go
 
 from functools import reduce
 import itertools
 from typing import Iterator, List
+import copy
 
 # import warnings
 # warnings.filterwarnings('ignore')
@@ -30,7 +32,7 @@ from tqdm import tqdm
 def eucdist(xa,ya,xb,yb,za=0,zb=0):
     '''
         Euclidean distance in 2D 
-
+-
         Measure of the distance between the coordinates of two positions
 
         INPUTS:
@@ -339,6 +341,78 @@ class atomicModel:
                 self.simRes = qt.mesolve(self.tHamiltonian, self.initState, self.times, c_ops=self.cops, e_ops=self.mops, options=self.simOpts);
 
     
+    # def buildTHamiltonian(self):
+    #     '''
+    #         Build time-dependent Hamiltonian 
+
+    #         Construct the time-dependent Hamiltonian of the atomicModel() and store it in the attribute tHamiltonian, the time-dependt pulses
+    #         in Hpulses and the parts structure of the Hamiltonian in _lstHamiltonian.
+    #         .
+    #     '''
+        
+    #     self.__mode = 'control'
+            
+    #     _HQobjEVO = [];
+    #     _HAQiPTpulses = [];
+        
+    #     if self.internalInteraction == None:
+
+    #         for element in range(len(self.dynParams['couplings'])):
+                
+    #             _HStruct = 0.5*self.dynParams['couplings']['Coupling'+str(element)][1] * (self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]] + self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]].dag());
+    #             _HtDependency = self.dynParams['couplings']['Coupling'+str(element)][2];
+    #             _HAQiPTpulses.append(_HtDependency);
+    #             _HQobjEVO.append([_HStruct, _HtDependency]);
+    #             self._lstHamiltonian.append(_HStruct);
+            
+    #         for element in range(len(self.dynParams['detunings'])):
+                
+    #             _HStruct = 0.5*self.dynParams['detunings']['Detuning'+str(element)][1]*(self._ops[(self.dynParams['detunings']['Detuning'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['detunings']['Detuning'+str(element)][0])[1]] );
+    #             _HtDependency = self.dynParams['detunings']['Detuning'+str(element)][2];
+    #             _HAQiPTpulses.append(_HtDependency);
+    #             _HQobjEVO.append([_HStruct, _HtDependency]);
+    #             self._lstHamiltonian.append(_HStruct);
+        
+    #     else:
+
+    #         for element in range(len(self.dynParams['couplings'])):
+
+    #             _Fullspace = [iden(self.Nrlevels)]*self.dynParams['Ensembles']['Atom_nr'];
+
+    #             _Fullspace_lst=[];
+    #             for atom_idx in range(self.dynParams['Ensembles']['Atom_nr']):
+    #                 _bufFullspace = _Fullspace.copy();
+    #                 _bufFullspace[atom_idx] = self.dynParams['couplings']['Coupling'+str(element)][1] * (self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]] + self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]].dag());
+    #                 _Fullspace_lst.append(qt.tensor(_bufFullspace));
+
+    #             _HStruct = sum(_Fullspace_lst);
+    #             _HtDependency = self.dynParams['couplings']['Coupling'+str(element)][2];
+
+    #             _HAQiPTpulses.append(_HtDependency);
+    #             _HQobjEVO.append([_HStruct, _HtDependency]);
+    #             self._lstHamiltonian.append(_HStruct);
+            
+    #         for element in range(len(self.dynParams['detunings'])):
+                
+    #             _Fullspace = [iden(self.Nrlevels)]*self.dynParams['Ensembles']['Atom_nr'];
+
+    #             _Fullspace_lst=[];
+    #             for atom_idx in range(self.dynParams['Ensembles']['Atom_nr']):
+    #                 _bufFullspace = _Fullspace.copy();
+    #                 _bufFullspace[atom_idx] = self.dynParams['detunings']['Detuning'+str(element)][1]*(self._ops[(self.dynParams['detunings']['Detuning'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['detunings']['Detuning'+str(element)][0])[1]] );
+    #                 _Fullspace_lst.append(qt.tensor(_bufFullspace));
+
+    #             _HStruct = sum(_Fullspace_lst);
+    #             _HtDependency = self.dynParams['detunings']['Detuning'+str(element)][2];
+    
+    #             _HAQiPTpulses.append(_HtDependency);
+    #             _HQobjEVO.append([_HStruct, _HtDependency]);
+    #             self._lstHamiltonian.append(_HStruct);
+
+
+    #     self.tHamiltonian = qt.QobjEvo(_HQobjEVO, tlist=self.times);
+    #     self.Hpulses = _HAQiPTpulses;
+
     def buildTHamiltonian(self):
         '''
             Build time-dependent Hamiltonian 
@@ -349,23 +423,28 @@ class atomicModel:
         '''
         
         self.__mode = 'control'
-            
+
         _HQobjEVO = [];
         _HAQiPTpulses = [];
         
         if self.internalInteraction == None:
-
             for element in range(len(self.dynParams['couplings'])):
                 
-                _HStruct = self.dynParams['couplings']['Coupling'+str(element)][1] * (self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]] + self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]].dag());
+                # _HStruct = 0.5*self.dynParams['couplings']['Coupling'+str(element)][1] * (self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]] + self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]].dag());
+                _HStruct = 0.5*self.dynParams['couplings']['Coupling'+str(element)][1] * (self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]] );
+                _HStruct_dag = 0.5*self.dynParams['couplings']['Coupling'+str(element)][1] *self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]].dag();
                 _HtDependency = self.dynParams['couplings']['Coupling'+str(element)][2];
+                _HtDependency_dag = np.conjugate(self.dynParams['couplings']['Coupling'+str(element)][2]);
                 _HAQiPTpulses.append(_HtDependency);
+                _HAQiPTpulses.append(_HtDependency_dag);
                 _HQobjEVO.append([_HStruct, _HtDependency]);
+                _HQobjEVO.append([_HStruct_dag, _HtDependency_dag]);
                 self._lstHamiltonian.append(_HStruct);
+                self._lstHamiltonian.append(_HStruct_dag);
             
             for element in range(len(self.dynParams['detunings'])):
                 
-                _HStruct = self.dynParams['detunings']['Detuning'+str(element)][1]*(self._ops[(self.dynParams['detunings']['Detuning'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['detunings']['Detuning'+str(element)][0])[1]] );
+                _HStruct = 0.5*self.dynParams['detunings']['Detuning'+str(element)][1]*(self._ops[(self.dynParams['detunings']['Detuning'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['detunings']['Detuning'+str(element)][0])[1]] );
                 _HtDependency = self.dynParams['detunings']['Detuning'+str(element)][2];
                 _HAQiPTpulses.append(_HtDependency);
                 _HQobjEVO.append([_HStruct, _HtDependency]);
@@ -505,7 +584,7 @@ class atomicModel:
         '''
         return self.simRes
     
-    def showResults(self, resultseq=None, sizefig=(15,9), labels=None):
+    def showResults(self, resultseq=None, resultTitle=None, figure_size=(15,9), labels=None, report=False):
         '''
             Show Results of atomicModel
 
@@ -529,7 +608,7 @@ class atomicModel:
         if resultseq==None:
             resultseq = self.simRes;
         
-        fig, axs = plt.subplots(figsize=sizefig);
+        fig, axs = plt.subplots(figsize=figure_size);
 
         if labels is None:
             for i in range(len(resultseq.expect)):
@@ -541,9 +620,14 @@ class atomicModel:
         plt.xlabel('Time', fontsize=18);
         plt.ylabel('Population', fontsize=18);
 
+        if resultTitle!=None:
+                plt.title(resultTitle);
+        else:
+            plt.title(self._name);
+
         return fig, axs
     
-    def modelMap(self, plotON=True):
+    def modelMap(self, plotON=True, figure_size=(8,8)):
         '''
             Construct and return the Graph plot and Lindbland terms for the Quantum master equation solver of QuTiP.
         '''
@@ -562,7 +646,8 @@ class atomicModel:
             i,j = dissipator[1][0];
             if i==j:
                 edge_list.append(tuple([i,j]));
-                
+
+        plt.figure(figsize=figure_size) 
         G = nx.MultiDiGraph(self.atomicMap, create_using=nx.DiGraph, seed = 100);
         
         #edges for dephasing
@@ -583,9 +668,32 @@ class atomicModel:
 
         return self.atomicMap
    
+    def recompile(self, mode):
+        if mode=='free':
+
+            self.buildHamiltonian();
+            self.buildLindbladians();
+            self.buildObservables();
+
+            print('Recompilation complete. Mode: '+mode)
+
+        elif mode=='control':
+
+            self.buildTHamiltonian();
+            self.buildLindbladians();
+            self.buildObservables();
+
+            print('Recompilation complete. Mode: '+mode)
+
 #####################################################################################################
 #atomicQRegister AQiPT class
 #####################################################################################################
+
+def append_to_list_if_not_exists(lst, arr):
+    for l in lst:
+        if np.array_equal(l, arr):
+            return
+    lst.append(arr)
 
 def perm_w_repl(n: int, m: int) -> Iterator[List[int]]:
     cur = []
@@ -702,10 +810,33 @@ def rydbergInteraction(qubit_nr, interacting_atoms, qdim=2):
     return rri_rrj_op
 
 #swap elements of a list
-def _swapElements(list, pos1, pos2):
+def _swapElements(LST, pos1, pos2):
      
-    list[pos1], list[pos2] = list[pos2], list[pos1]
-    return list
+    LST[pos1], LST[pos2] = LST[pos2] , LST[pos1];
+    return LST
+
+#combinations of list lst of values without elements i and j
+def generate_combinations(lst, i, j, values):
+    combinations = list(itertools.product(*values));
+
+    results = [];
+    
+    for combination in combinations:
+        result = lst.copy(); 
+        for index, value in enumerate(combination):
+            if index != i and index != j:
+                result[index] = value;
+                append_to_list_if_not_exists(results, result);
+
+    return results
+
+#eliminate duplicates in list
+def eliminate_duplicates(lst):
+    unique_list = []
+    for item in lst:
+        if item not in unique_list:
+            unique_list.append(item)
+    return unique_list
 
 class atomicQRegister:
     
@@ -858,6 +989,7 @@ class atomicQRegister:
         self.Nrlevels = reduce(lambda x, y: x * y, self.lstNrlevels);
         self._levels = None;
         self._AMslevels = [list(np.arange(lvlAM)) for lvlAM in self.lstNrlevels];
+        self._AMslevels_ket = [[qt.basis(self.lstNrlevels[k1], k2) for k2 in self._AMslevels[k1]] for k1 in range(len(self._AMslevels))];
         self.NrQReg = len(self._AMs);
 
         self.__HilbertSpaceSize = sum(self.lstNrlevels);
@@ -876,6 +1008,7 @@ class atomicQRegister:
         self.lstPulses = [AM.Hpulses for AM in self._AMs];
         self.nHamiltonian = None;
         self.tnHamiltonian = None;
+        self._Vint = None;
         self.Hpulses = None;
         
         self.lstcops = [AM.cops for AM in self._AMs];
@@ -884,28 +1017,42 @@ class atomicQRegister:
         self.lstmops = [AM.mops for AM in self._AMs];
         self.nmops = [];
         
-        self._np_ops, self._ops, self._basis = ops_nlvl(self.Nrlevels);
-        self._basisString = [];
+        # self._np_ops, self._ops, self._basis = ops_nlvl(self.Nrlevels);
+        self._basisString = [lst2str(i) for i in list(itertools.product(*[range(AM.Nrlevels) for AM in self._AMs]))];
         self._basis = [];
         self._intbasis = [];
+
         self._pairInteraction_idx = [];
         self._pairInteraction_lval = [];
 
         self.nC6Interaction = None;
+
+        self._C3pairInteraction_idx = [];
         self.nC3Interaction = None;
+        self._combinationsC3 = None;
 
         self._graphRegister = None;
         self._graphscolors = None;
         self._rydbergstates = [];
+        self._groundstates = [];
+        self._rydbergstatesAM = [];
+        self._groundstatesAM = [];
         
         _Hcount=0;
         for i in range(len(self._AMs)):
             _HS_AMS=[];
+            _HS_adj_AMS=[];
             for _rydState in self._AMs[i].dynParams['rydbergstates']['RydbergStates']:
                 self._rydbergstates.append( _rydState + _Hcount);
+                _HS_adj_AMS.append(_rydState)
                 _HS_AMS.append(_rydState + _Hcount);
-            self._HSlist.append(_HS_AMS);    
+            self._HSlist.append(_HS_AMS);
+            self._rydbergstatesAM.append(_HS_adj_AMS);
+            self._groundstatesAM.append([j for j in self._AMslevels[i] if j not in _HS_adj_AMS]);
             _Hcount+=self._AMs[i].Nrlevels;
+
+        self._groundstates = [item for sublist in self._groundstatesAM for item in sublist];
+
         if connectivity[0]=='All':
             self.connectivity = connectivity;
         elif connectivity[0]=='Bidirected':
@@ -923,13 +1070,12 @@ class atomicQRegister:
 
         self._name = name;
         self._homogeneous = homogeneous;
-        self.simOpts = qt.Options(nsteps=500, rtol=1e-7, max_step=10e-1);
+        self.simOpts = None; #qt.Options(nsteps=500, rtol=1e-7, max_step=10e-1);
         self.simRes = None;
         self.__mode = 'free';
 
         
     def compile(self):
-
         Q = nx.MultiDiGraph({}, create_using=nx.DiGraph, seed=100);
 
         for connection in self.connectivity:
@@ -955,11 +1101,11 @@ class atomicQRegister:
 
         Q.add_edges_from(self.map);
         
-        plt.figure();
-        nx.draw(Q, with_labels=True);
+        # plt.figure();
+        # nx.draw(Q, with_labels=True);
 
         self._graphMap = Q; #set graph of the qubit map
-        
+
         for n in range(self.NrQReg):
             
             #positions of atoms
@@ -990,6 +1136,65 @@ class atomicQRegister:
 
             self.compileQRegister.update({_nqLabel: _nqDetails}); #store QRegister details/specs
 
+        pos = {i: tuple(val) for i, val in enumerate(self.layout)};
+        pos = nx.set_node_attributes(Q, pos, 'pos');
+
+        #extract node positions
+        pos = nx.get_node_attributes(Q, 'pos');
+        # print(pos)
+        x, y, z = zip(*pos.values());
+
+        #define custom labels for the nodes
+        labels =  {i: 'q'+str(i) for i in range(len(self.layout))};
+
+        #create a list of labels for the nodes
+        node_labels = [labels.get(node, '') for node in Q.nodes()];
+
+        #extract edge endpoints and assign labels
+        edge_x = [];edge_y = [];edge_z = [];
+        edge_labels = [];
+
+        for u, v, d in Q.edges(data=True):
+            x0, y0, z0 = pos[u];
+            x1, y1, z1 = pos[v];
+            midpoint = ((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);  # calculate midpoint
+            edge_x.extend([x0, x1, midpoint[0], None]);
+            edge_y.extend([y0, y1, midpoint[1], None]);
+            edge_z.extend([z0, z1, midpoint[2], None]);
+            edge_labels.append(midpoint);  # add midpoint coordinates only
+
+        # Create 3D plot with nodes and edges
+        fig = go.Figure(data=[go.Scatter3d(
+            x=x,
+            y=y,
+            z=z,
+            mode='markers+text',
+            marker=dict(size=10, color='dodgerblue'),
+            text=node_labels
+        ), go.Scatter3d(
+            x=edge_x,
+            y=edge_y,
+            z=edge_z,
+            mode='lines+text',
+            line=dict(color='black', width=2),
+            text=[f"({i},{j})" for (i, j) in Q.edges()],
+            textposition='middle center',  # set text position to middle center
+            textfont=dict(size=10, color='black'),
+            hoverinfo='none'
+        )])
+
+        # Set plot layout
+        fig.update_layout(margin=dict(l=20,
+                                      r=20,
+                                      b=20,
+                                      t=20,
+                                      pad=4),
+                          width=300, 
+                          height=300, 
+                          title='3D QRegister graph')
+
+        # Show the plot
+        fig.show()
 
     def playSim(self, mode='free', solver='QuTiP-QME'):
         '''
@@ -1004,7 +1209,12 @@ class atomicQRegister:
                 self.simRes = qt.mesolve(self.nHamiltonian, qt.ket2dm(self.initnState), self.times, c_ops=self.ncops, e_ops=self.nmops, options=self.simOpts)
 
             elif self.__mode=='control':
-                self.simRes = qt.mesolve(self.tnHamiltonian, qt.ket2dm(self.initnState), self.times, c_ops=self.ncops, e_ops=self.nmops, options=self.simOpts)
+                # self.simRes = qt.mesolve(self.tnHamiltonian, qt.ket2dm(self.initnState), self.times, c_ops=self.ncops, e_ops=self.nmops, options=self.simOpts)
+
+                if self.ncops==None:
+                    self.simRes = qt.mesolve(self.tnHamiltonian, self.initnState, self.times, e_ops=self.nmops, options=self.simOpts);
+                else:
+                    self.simRes = qt.mesolve(self.tnHamiltonian, self.initnState, self.times, c_ops=self.ncops, e_ops=self.nmops, options=self.simOpts);
     
     def buildNBasis(self):
 
@@ -1014,7 +1224,7 @@ class atomicQRegister:
             _basisString.append(lst2string(basis));
             _basis.append(nqString2nqKet(lst2string(basis), None, bitsdim=self.lstNrlevels));
     
-    def _buildInteractingBasis(self):
+    def _buildInteractingBasis(self, _psi):
 
         '''
             Build the basis (states and operators) for the interactions basis in the connectivity map, that represent the 
@@ -1022,68 +1232,58 @@ class atomicQRegister:
         '''
 
         _pairInteraction_idx = [];
-        _interaction_ops = [[], [], []]; #[list_diag, list_off, list_satis]
+        _interaction_ops = [[], [], []]; #[list_vdW, list_dd, list_selfInt]
         _interaction_sts = [];   
-
-        # Vij_self = qt.Qobj(); #variable for self-interaction Rydbergs (?)
-        # Vij_d = qt.Qobj(); #variable for the binary interaction (diagonal terms)
-        # Vij_offd = qt.Qobj(); #variable for the binary interaction (off-diagonal terms)
-        # Vij = qt.Qobj(); #variable for the binary interaction (full interaction)
 
         for connection in self.connectivity: #at the full Hilbert space basis
 
-            ri = connection[0]; #state i-th
-            rj = connection[1]; #state j-th
+            ri = connection[0]; #state i-th rydberg state
+            rj = connection[1]; #state j-th rydberg state
 
             _idx_ij = []; #index pair list for the connection
-            _klst = list(range(len(self._AMs))); #list of index for qubits
             
-
             #build basis accordingly with the available interactions
-            for k in range(len(self._HSlist)): #index over the first rydberg
-                _PSI = [qt.basis(atMod.Nrlevels, 0) for atMod in self._AMs]; #wavefunction structure of the multi-atomicModel
-                _PSI_dag = [[] for _ in range(len(self._AMs))]; #copy of _PSI but dagger
-            
-                if ri in self._HSlist[k]: #check if ri is in list of k-th interacting state levels
+            for k in range(len(self._HSlist)): #qbit index over the first rydberg             
+
+                _PSI = _psi; #[qt.basis(atMod.Nrlevels, 0) for atMod in self._AMs]; #wavefunction structure of the multi-atomicModel
+
+                if ri in self._HSlist[k]: #check if ri is in list of k-th qbit interacting state levels
+
                     _ri_ket = qt.basis(self.lstNrlevels[k], self._AMslevels[k].index(ri-sum(self.lstNrlevels[:k])));
                     _ri_ket_idx = k;
                     _PSI[k] = _ri_ket;
-                    if k in _klst: 
-                        _klst.pop(_klst.index(k));
 
                     _idx_ij.append(_ri_ket_idx);
 
+                    for m in range(k,len(self._HSlist)): #qbit index over the second rydberg
 
-                    for m in range(k,len(self._HSlist)): #index over the second rydberg
+                        _PSI_m = copy.deepcopy(_PSI); #wavefunction structure of the multi-atomicModel for m-th qubit state
 
-                        if k==m: #same bits of the regiter
-                            if rj in self._HSlist[m]: #check if rj is in list of m-th interacting state levels
+                        if k==m: #same bits of the register
+
+                            if rj in self._HSlist[m]: #check if rj is in list of m-th qbit interacting state levels
+
                                 _rj_ket = qt.basis(self.lstNrlevels[m], self._AMslevels[m].index(rj-sum(self.lstNrlevels[:m])));
                                 _rj_ket_idx = m;
-                                _PSI[m] = _rj_ket;
+                                _PSI_m[m] = _rj_ket;
 
-                                _interaction_sts.append(_PSI);
-
-                                if m in _klst:
-                                    _klst.pop(_klst.index(m));
+                                _interaction_sts.append(_PSI_m);
 
                                 _idx_ij.append(_rj_ket_idx);
                             
-                                _VIJ = qt.tensor(_PSI)*(qt.tensor(_PSI).dag());
+                                _VIJ = qt.tensor(_PSI_m)*(qt.tensor(_PSI_m).dag());
                                 _VIJ.dims = [[self.Nrlevels],[self.Nrlevels]];
-                                # Vij_self += _VIJ; #total self-interaction term, also uncomment definition on top
                                 _interaction_ops[2].append(_VIJ);
                         
-                        else: #diffent bits of the regiter
+                        else: #different bits of the register
+
                             if rj in self._HSlist[m]: #check if rj is in list of m-th interacting state levels
+
                                 _rj_ket = qt.basis(self.lstNrlevels[m], self._AMslevels[m].index(rj-sum(self.lstNrlevels[:m])));
                                 _rj_ket_idx = m;
-                                _PSI[m] = _rj_ket;
+                                _PSI_m[m] = _rj_ket;
 
-                                _interaction_sts.append(_PSI);
-
-                                if m in _klst:
-                                    _klst.pop(_klst.index(m));
+                                _interaction_sts.append(_PSI_m);
 
                                 _idx_ij.append(_rj_ket_idx);
 
@@ -1091,24 +1291,53 @@ class atomicQRegister:
                                 li = self.dynParams[k]['rydbergstates']['l_values'][self._AMslevels[k].index(ri-sum(self.lstNrlevels[:k]))- (self._AMs[k].Nrlevels-len(self.dynParams[k]['rydbergstates']['l_values']))]; #l-value for ri
                                 lj = self.dynParams[m]['rydbergstates']['l_values'][self._AMslevels[m].index(rj-sum(self.lstNrlevels[:m]))- (self._AMs[m].Nrlevels-len(self.dynParams[m]['rydbergstates']['l_values']))]; #l-value for rj
 
-                                if li==lj: #if li=lj check V_{vdW} or V_{d-d} otherwise
-                                    _VIJ = qt.tensor(_PSI)*(qt.tensor(_PSI).dag());
+                                if li==lj: #if li=lj check V_{vdW} 
+
+                                    _VIJ = qt.tensor(_PSI_m)*(qt.tensor(_PSI_m).dag());
                                     _VIJ.dims = [[self.Nrlevels],[self.Nrlevels]];
-                                    # Vij_d += _VIJ; #total diagonal term, also uncomment definition on top
                                     _interaction_ops[0].append(_VIJ);
-                                else:
-                                    _VIJ = qt.tensor(_PSI)*(qt.tensor(_swapElements(_PSI, _ri_ket_idx, _rj_ket_idx)).dag());
-                                    _VIJ.dims = [[self.Nrlevels],[self.Nrlevels]];
-                                    # Vij_offd += _VIJ; #total off-diagonal term, also uncomment definition on top
+
+                                else: #or V_{d-d} otherwise
+
+                                    if self.NrQReg==2:
+                                        _PSI_m_dag = copy.deepcopy(_PSI_m)
+                                        _VIJ = qt.tensor(_PSI_m)*(qt.tensor(_swapElements(_PSI_m_dag, _ri_ket_idx, _rj_ket_idx)).dag());
+                                        _VIJ.dims = [[self.Nrlevels],[self.Nrlevels]];
+                                        _interaction_ops[1].append(_VIJ);
+                                    else:
+                                        _combinations4C3 = eliminate_duplicates(generate_combinations(_PSI_m, _ri_ket_idx, _rj_ket_idx, self._AMslevels_ket));
+                                        self._combinationsC3 = _combinations4C3.copy();
+                                        _VIJ=0;
+                                        for combi in _combinations4C3:
+                                            _PPSI_m =copy.deepcopy(combi);
+                                            _PPSI_m_dag = _swapElements(copy.deepcopy(_PPSI_m), _rj_ket_idx, _ri_ket_idx);
+                                            _vij = qt.tensor(_PPSI_m)*(qt.tensor(_PPSI_m_dag).dag());
+                                            _vij.dims = [[self.Nrlevels],[self.Nrlevels]];
+                                            _VIJ+=_vij;
                                     _interaction_ops[1].append(_VIJ);
 
+
+                                    # _VIJ=0;
+                                    # for l in range(len(self._HSlist)):
+
+                                    #     if l!=m and l!=k:
+                                    #         for rk in self._AMs[l]._basis:
+                                    #             _PPSI_m =copy.deepcopy(_PSI_m);
+                                    #             _PPSI_m[l]=rk;
+                                    #             _PPSI_m_dag = _swapElements(copy.deepcopy(_PPSI_m), _rj_ket_idx, _ri_ket_idx);
+                                    #             _VIJ += qt.tensor(_PPSI_m)*(qt.tensor(_PPSI_m_dag).dag());
+
+                                    # _VIJ.dims = [[self.Nrlevels],[self.Nrlevels]];
+                                    # _interaction_ops[1].append(_VIJ);
+                                
                                 self._pairInteraction_lval.append([li, lj]);
-            
                                 _pairInteraction_idx.append(_idx_ij);
 
-        # Vij = Vij_d + Vij_offd+Vij_self; #total interaction term, also uncomment definition on top
         self._intbasis = [_interaction_ops, _interaction_sts];
         self._pairInteraction_idx = _pairInteraction_idx;
+
+        for i in self._pairInteraction_idx:
+            append_to_list_if_not_exists(self._C3pairInteraction_idx, np.array(i).tolist())
 
     def buildNinitState(self):
         '''
@@ -1135,7 +1364,8 @@ class atomicQRegister:
         _buf = [];
         
         for i in range(len(self._AMs)):
-            _bufHamLst = _idenLst.copy(); #copy identity ops list
+            # _bufHamLst = _idenLst.copy(); #copy identity ops list
+            _bufHamLst = copy.deepcopy(_idenLst); #copy identity ops list
             _bufHamLst[i] = self.lstHamiltonian[i] #substitute ith iden by ith Hamiltonian
             
             _buf.append(qt.tensor(_bufHamLst)); #save tensor product in buffer list
@@ -1204,11 +1434,15 @@ class atomicQRegister:
         else:
             self._AMs+=[AM]
     
-    def getNHamiltonian(self):
+    def getNHamiltonian(self, Hamiltonian_format='qutip'):
         '''
             Return the Hamiltonian for the N atomicModel() that constitute the atomicQRegister().
         '''
-        return self.nHamiltonian
+
+        if Hamiltonian_format=='qutip':
+            return self.nHamiltonian;
+        if Hamiltonian_format=='numpy':
+            return self.nHamiltonian.data.todense();
 
     def getNLindbladian(self):
         '''
@@ -1218,37 +1452,52 @@ class atomicQRegister:
     
     def buildInteractions(self, c6=1, c3=1):
 
-        self._buildInteractingBasis();
+        if len(self._intbasis)==0:
 
-        _Vtot=None;
 
-        #for C6 interactions
-        for idx_basis in range(len(self._intbasis[0][0])):
-            self._getC6Strength(c6_val=c6, idx=idx_basis%self.NrQReg);
-            if isinstance(_Vtot, qt.Qobj):
-                _Vtot += self.nC6Interaction*self._intbasis[0][0][idx_basis];
-            else:
-                _Vtot = self.nC6Interaction*self._intbasis[0][0][idx_basis];
-        
-        #for C3 interactions
-        for idx_basis in range(len(self._intbasis[0][1])):
-            self._getC3Strength(c3_val=c3, idx=idx_basis%self.NrQReg);
-            if isinstance(_Vtot, qt.Qobj):
-                _Vtot += self.nC3Interaction*self._intbasis[0][1][idx_basis];
-            else:
-                _Vtot = self.nC3Interaction*self._intbasis[0][1][idx_basis];
+            self._groundstatesAM = [[0] if not sublist else sublist for sublist in self._groundstatesAM]; #replace empty sublists with a single element [0]
 
-            print(idx_basis, self.nC3Interaction, self._intbasis[0][1][idx_basis])
-        try:
-            self.tnHamiltonian.append(_Vtot); #add the interaction term as always ON Hamiltonian
-        except:
-            self.nHamiltonian+= _Vtot; #add the interaction term as always ON Hamiltonian
+            
+            _GScombinations = [p for p in itertools.product(*self._groundstatesAM)]; #generate all combinations of GS in NrQReg elements from the sublists
+            # _GScombinations = [c for c in _GScombinations if len(set([id(sublist) for sublist in c])) == self.NrQReg]; #filter out combinations with duplicate elements from the same sublist
 
-            # print(np.nonzero(_Vtot)[0], '\n ', np.nonzero(_Vtot)[1])
-            # print(_Vtot.full)
-            # print(np.matrix(_Vtot))
-            return np.matrix(_Vtot)
-    
+            _PSI_LST = [[qt.basis(atMod.Nrlevels, gs) for atMod, gs in zip(self._AMs, _GScombinations[comb_idx])] for comb_idx in range(len(_GScombinations))]; #iterate over all possible combinations of GS
+             
+            for psi_idx in range(len(_PSI_LST)):
+                self._buildInteractingBasis(_psi = _PSI_LST[psi_idx]);
+
+                _Vtot=None;
+
+                #for C6 interactions
+                for idx_basis in range(len(self._intbasis[0][0])):
+                    self._getC6Strength(c6_val=c6, idx=idx_basis%self.NrQReg);
+                    if isinstance(_Vtot, qt.Qobj):
+                        _Vtot += self.nC6Interaction*self._intbasis[0][0][idx_basis];
+                    else:
+                        _Vtot = self.nC6Interaction*self._intbasis[0][0][idx_basis];
+                
+                _intbasis4C3 = [];
+                for ii in self._intbasis[0][1]:
+                    append_to_list_if_not_exists(_intbasis4C3, ii+ ii.dag());
+
+
+                for idx_basis in range(len(self._C3pairInteraction_idx)):
+
+                    self._getC3Strength(c3_val=c3, idx=idx_basis); #%self.NrQReg
+
+                    if isinstance(_Vtot, qt.Qobj):
+                        _Vtot += self.nC3Interaction*_intbasis4C3[idx_basis];
+                    else:
+                        _Vtot = self.nC3Interaction*_intbasis4C3[idx_basis];
+
+                try:
+                    self.tnHamiltonian.append(_Vtot); #add the interaction term as always ON Hamiltonian
+                    self.tnHamiltonian = self.tnHamiltonian[-1:] + self.tnHamiltonian[:-1]; #setting the new _Vtot term as first, for qutip solver requirement
+                    self._Vint = _Vtot;
+
+                except:
+                    self.nHamiltonian+= _Vtot; #add the interaction term as always ON Hamiltonian
+
     def _getC6Strength(self, c6_val=1, idx=None):
 
         '''
@@ -1278,10 +1527,13 @@ class atomicQRegister:
             c3_val : value of the C3 coefficient
 
         '''
-        print(self.layout[self._pairInteraction_idx[idx][0]][0], self.layout[self._pairInteraction_idx[idx][0]][1],
-            self.layout[self._pairInteraction_idx[idx][1]][0], self.layout[self._pairInteraction_idx[idx][1]][1])
-        self.nC3Interaction = c3_val/eucdist(self.layout[self._pairInteraction_idx[idx][0]][0], self.layout[self._pairInteraction_idx[idx][0]][1],
-                                             self.layout[self._pairInteraction_idx[idx][1]][0], self.layout[self._pairInteraction_idx[idx][1]][1])**3;
+        # print('idx: ', idx)
+        # print('xa: ', self.layout[self._C3pairInteraction_idx[idx][0]][0], 
+        #     'ya: ', self.layout[self._C3pairInteraction_idx[idx][0]][1],
+        #     'xb: ', self.layout[self._C3pairInteraction_idx[idx][1]][0], 
+        #     'yb: ', self.layout[self._C3pairInteraction_idx[idx][1]][1])
+        self.nC3Interaction = c3_val/eucdist(self.layout[self._C3pairInteraction_idx[idx][0]][0], self.layout[self._C3pairInteraction_idx[idx][0]][1],
+                                             self.layout[self._C3pairInteraction_idx[idx][1]][0], self.layout[self._C3pairInteraction_idx[idx][1]][1])**3;
 
     def getNObservables(self):
         '''
@@ -1295,59 +1547,141 @@ class atomicQRegister:
         '''
         return self.simRes
     
-    def showResults(self, legendON=True, resultseq=None, resultlabel=None, figureSize=(10,6), figure=None, axis=None):
+    def showHamiltonian(self, plot_mode='matplotlib', color_map='viridis'):
+
+        if plot_mode == 'matplotlib':
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 4.5), tight_layout=True);
+
+            ax1.imshow(np.real(self.nHamiltonian), cmap=color_map);
+            ax1.set_title(r'Re($\mathcal{H}$)');
+            
+            ax2.imshow(np.imag(self.nHamiltonian), cmap=color_map);
+            ax2.set_title(r'Im($\mathcal{H}$)');
+
+        elif plot_mode == 'qutip':
+            qt.hinton(self.nHamiltonian);
+
+    def showResults(self, plot_mode='matplotlib', legendON=True, resultTitle=None, resultseq=None, resultlabel=None, figure_size=(10,6), figure=None, axis=None, report=False):
         '''
             Return Results for the N atomicModel() that constitute the atomicQRegister().
         '''
 
-        resultseq = self.simRes;
-        if resultlabel == None:
-            resultlabel = [lst2str(i) for i in list(itertools.product(*[range(AM.Nrlevels) for AM in self._AMs]))];
-            self._basisString = resultlabel;
-            
-        if figure==None and axis==None:
-            
-            fig, axs = plt.subplots(figsize=figureSize);
-
-            for i in range(len(resultseq.expect)):
-                if resultlabel != None:
-                    axs.plot(self.times, resultseq.expect[i], label=resultlabel[i]);
-                else:
-                    axs.plot(self.times, resultseq.expect[i], label=i);
-
-            if legendON:
-                plt.legend();
-            plt.xlabel('Time', fontsize=18);
-            plt.ylabel('Population', fontsize=18)
-
-            return fig, axs
-
-        else:
+        if plot_mode=='plotly':
+            if figure_size==(10,6):
+                figure_size=(1650,500);
             resultseq = self.simRes
-            
-            fig, axs = figure, axis;
+            if resultlabel == None:
+                resultlabel = [lst2str(i) for i in list(itertools.product(*[range(AM.Nrlevels) for AM in self._AMs]))]
+                self._basisString = resultlabel
 
-            colormap = plt.cm.nipy_spectral; #I suggest to use nipy_spectral, Set1,Paired
-            axs.set_prop_cycle(color=[colormap(i) for i in np.linspace(0, 1, self.Nrlevels)]);
+            if figure==None and axis==None:
+                fig = go.Figure()
 
-            for i in range(len(resultseq.expect)):
-                if resultlabel != None:
-                    axs.plot(self.times, resultseq.expect[i], label=resultlabel[i]);
+                for i in range(len(resultseq.expect)):
+                    if resultlabel != None:
+                        fig.add_trace(go.Scatter(x=self.times, y=resultseq.expect[i], name=resultlabel[i]))
+                    else:
+                        fig.add_trace(go.Scatter(x=self.times, y=resultseq.expect[i], name=str(i)))
+
+                if legendON:
+                    fig.update_layout(showlegend=True)
                 else:
-                    axs.plot(self.times, resultseq.expect[i], label=i);
+                    fig.update_layout(showlegend=False)
 
-            if legendON:        
-                plt.legend();
-            plt.xlabel('Time', fontsize=18);
-            plt.ylabel('Population', fontsize=18)
+                fig.update_layout(
+                    xaxis_title='Time',
+                    yaxis_title='Population',
+                    title=resultTitle if resultTitle != None else self._name,
+                    width=figure_size[0],
+                    height=figure_size[1]
+                )
+                return fig
 
-            return fig, axs
-    
-    def registerMap(self, plotON=True):
+            else:
+                resultseq = self.simRes
+
+                fig, axs = figure, axis
+
+                colormap = plt.cm.nipy_spectral
+                colors = [colormap(i) for i in np.linspace(0, 1, self.Nrlevels)]
+
+                for i in range(len(resultseq.expect)):
+                    if resultlabel != None:
+                        axs.plot(self.times, resultseq.expect[i], label=resultlabel[i], color=colors[i])
+                    else:
+                        axs.plot(self.times, resultseq.expect[i], label=i, color=colors[i])
+
+                if legendON:
+                    axs.legend()
+                axs.set_xlabel('Time', fontsize=18)
+                axs.set_ylabel('Population', fontsize=18)
+
+                if resultTitle!=None:
+                    axs.set_title(resultTitle)
+                else:
+                    axs.set_title(self._name)
+                
+                return fig, axs
+            fig.show();
+        if plot_mode=='matplotlib':
+            resultseq = self.simRes;
+            if resultlabel == None:
+                resultlabel = [lst2str(i) for i in list(itertools.product(*[range(AM.Nrlevels) for AM in self._AMs]))];
+                self._basisString = resultlabel;
+                
+            if figure==None and axis==None:
+                
+                fig, axs = plt.subplots(figsize=figure_size);
+
+                for i in range(len(resultseq.expect)):
+                    if resultlabel != None:
+                        axs.plot(self.times, resultseq.expect[i], label=resultlabel[i]);
+                    else:
+                        axs.plot(self.times, resultseq.expect[i], label=i);
+
+                if legendON:
+                    plt.legend();
+                plt.xlabel('Time', fontsize=18);
+                plt.ylabel('Population', fontsize=18);
+                if resultTitle!=None:
+                    plt.title(resultTitle);
+                else:
+                    plt.title(self._name);
+
+                return fig, axs
+
+            else:
+                resultseq = self.simRes
+                
+                fig, axs = figure, axis;
+
+                colormap = plt.cm.nipy_spectral; #I suggest to use nipy_spectral, Set1,Paired
+                axs.set_prop_cycle(color=[colormap(i) for i in np.linspace(0, 1, self.Nrlevels)]);
+
+                for i in range(len(resultseq.expect)):
+                    if resultlabel != None:
+                        axs.plot(self.times, resultseq.expect[i], label=resultlabel[i]);
+                    else:
+                        axs.plot(self.times, resultseq.expect[i], label=i);
+
+                if legendON:        
+                    plt.legend();
+                plt.xlabel('Time', fontsize=18);
+                plt.ylabel('Population', fontsize=18);
+
+                if resultTitle!=None:
+                    plt.title(resultTitle);
+                else:
+                    plt.title(self._name);
+
+
+                return fig, axs
+
+    def registerMap(self, plotON=True, figure_size=(8,8)):
         '''
             Return the plot of the map for the N atomicModel() that constitute the atomicQRegister().
         '''
-        plt.figure();
+        plt.figure(figsize=figure_size);
         
         self._graphscolors = list(self._AMs[0]._graph['colormap']);
         
@@ -1360,7 +1694,7 @@ class atomicQRegister:
 
         if self.connectivity[0]=='All':
             rydberg_edges = list(itertools.product(self._rydbergstates, self._rydbergstates));
-            rydberg_edges.pop()
+            # rydberg_edges.pop() #eliminates the last self-interaction term (n,n) from the connectivity map
         else:
             rydberg_edges = self.connectivity;
 
@@ -1370,8 +1704,10 @@ class atomicQRegister:
         
         self._graphRegister = G;
         self.connectivity = rydberg_edges;
-        print('Violet nodes: Rydberg states. Blue nodes: Ground states')
-        return self._graphRegister
+
+        if plotON==True:
+            print('Violet nodes: Rydberg states. Blue nodes: Ground states')
+        return self._graphRegister;
 
 #####################################################################################################
 #Scans-functions for atomicModels (AQiPT)
