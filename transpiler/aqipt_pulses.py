@@ -142,26 +142,26 @@ class SquarePulse():
             self.width = (self.t_end - self.t_start)/2
             self.t_o = self.t_start + self.width
             self.tg = self.width * 2
-            self.area = np.round(1/2*self.tg*np.abs(self.amp), 5)
+            self.area = self.tg*np.abs(self.amp)
         
         # Area and starting setting
         elif self.area != None and self.t_start != None:
-            self.area = np.round(self.area, 5)
-            self.width = 1/4*self.area/(np.abs(self.amp))
-            self._width_adjustment()
+            self.area = self.area
+            self.width = 1/2*(self.area/(np.abs(self.amp)))
+          #  self._width_adjustment()
             self.t_o = self.t_start + self.width
-            self.tg = self.width * 2
+            self.tg = self.area
             self.t_end = self.t_start + self.tg
     
     def _width_adjustment(self):
         
-        while self.width < 0.05:
-            self.width *= 2 
-            self.amp /= 2
+        while self.width < 0.06:
+            self.width *= 3
+            #self.amp /= 2
             
         while self.width > 1:
-            self.width /= 2
-            self.amp *= 2
+            self.width /= 3
+            #self.amp *= 2
             
         
     def _function(self):
