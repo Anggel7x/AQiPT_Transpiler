@@ -1469,26 +1469,30 @@ class atomicQRegister:
                 _Vtot=None;
 
                 #for C6 interactions
-                for idx_basis in range(len(self._intbasis[0][0])):
-                    self._getC6Strength(c6_val=c6, idx=idx_basis%self.NrQReg);
-                    if isinstance(_Vtot, qt.Qobj):
-                        _Vtot += self.nC6Interaction*self._intbasis[0][0][idx_basis];
-                    else:
-                        _Vtot = self.nC6Interaction*self._intbasis[0][0][idx_basis];
-                
-                _intbasis4C3 = [];
-                for ii in self._intbasis[0][1]:
-                    append_to_list_if_not_exists(_intbasis4C3, ii+ ii.dag());
+                try:
+                    for idx_basis in range(len(self._intbasis[0][0])):
+                        self._getC6Strength(c6_val=c6, idx=idx_basis%self.NrQReg);
+                        if isinstance(_Vtot, qt.Qobj):
+                            _Vtot += self.nC6Interaction*self._intbasis[0][0][idx_basis];
+                        else:
+                            _Vtot = self.nC6Interaction*self._intbasis[0][0][idx_basis];
+                    
+                    _intbasis4C3 = [];
+                    for ii in self._intbasis[0][1]:
+                        append_to_list_if_not_exists(_intbasis4C3, ii+ ii.dag());
 
 
-                for idx_basis in range(len(self._C3pairInteraction_idx)):
+                    for idx_basis in range(len(self._C3pairInteraction_idx)):
 
-                    self._getC3Strength(c3_val=c3, idx=idx_basis); #%self.NrQReg
+                        self._getC3Strength(c3_val=c3, idx=idx_basis); #%self.NrQReg
 
-                    if isinstance(_Vtot, qt.Qobj):
-                        _Vtot += self.nC3Interaction*_intbasis4C3[idx_basis];
-                    else:
-                        _Vtot = self.nC3Interaction*_intbasis4C3[idx_basis];
+                        if isinstance(_Vtot, qt.Qobj):
+                            _Vtot += self.nC3Interaction*_intbasis4C3[idx_basis];
+                        else:
+                            _Vtot = self.nC3Interaction*_intbasis4C3[idx_basis];
+                except:
+                    print("No C6 Interaction")
+                    pass
 
                 try:
                     self.tnHamiltonian.append(_Vtot); #add the interaction term as always ON Hamiltonian
