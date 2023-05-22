@@ -58,17 +58,12 @@ class GaussianPulse():
             self.t_o = self.t_start + self.width
             self.g_center = self.t_o
             self.g_std = self.width/4
-            self.g_std = np.round(self.g_std, 5)
-            self.area = 1/2*self.g_std*pow(4*np.pi, 1/2)*np.abs(self.g_Amp)
-            self.area = np.round(self.area, 5)
+            self.area = self.g_std*pow(4*np.pi, 1/2)*np.abs(self.g_Amp)
             
-    
         elif self.area != None and self.t_start != None: # Segundo modo
-            self.area = np.round(self.area, 5)
-            self.g_std = 1/2*(self.area/(pow(4*np.pi, 1/2)*np.abs(self.g_Amp)))
+            self.g_std = (self.area/(pow(4*np.pi, 1/2)*np.abs(self.g_Amp)))
             self.width = self.g_std*4
             self._std_adjustment()
-            self.g_std = np.round(self.g_std, 5)
             self.width = self.g_std*4
             self.t_o = self.t_start + self.width
             self.g_center = self.t_o
@@ -93,17 +88,16 @@ class GaussianPulse():
 
     def _std_adjustment(self):
 
-        while self.width < 0.05:
-            self.g_std *= 2
+        while self.width < 0.06:
+            self.g_std *= 3
             self.width = self.g_std*4
-            self.g_Amp /= 2
+            #self.g_Amp /= 2
             
         while self.width > 1:
-            self.g_std /= 2
+            self.g_std /= 3
             self.width = self.g_std*4
-            self.g_Amp *= 2
+            #self.g_Amp *= 2
             
-
 class SquarePulse():
     def __init__(self,
         t_o: Optional[float] = None, 
