@@ -111,7 +111,7 @@ class RydbergQubitSchedule():
                     max_amp = np.max(np.abs(pulse))
                     
                     abs_pulse = np.abs(pulse)/max_amp
-                    angl_pulse = np.angle(pulse)/2
+                    angl_pulse = -np.angle(pulse)
                     
                     if phase:
                         axis.plot(times, angl_pulse, color=color[i+1 % 4], label="$\phi (t)$")
@@ -125,16 +125,15 @@ class RydbergQubitSchedule():
 
                 axis.set_ylabel(f'{key}')
                 axis.set_xlim(xmin, xmax)
+                
+                axis.legend()
             else :
                 for pulse, omega in p_pulses[key] :
                     factor = omega / (2*np.pi)
                     max_amp = np.max(np.abs(pulse))
                     
                     abs_pulse = np.abs(pulse)
-                    angl_pulse = np.angle(pulse)/2
-                    
-                    # correction of the phase when pi 
-                    angl_pulse[ angl_pulse == np.angle(np.exp(+1j*2*np.pi))/2] = np.pi
+                    angl_pulse = -np.angle(pulse)
                     
                     if phase:
                         axis[i].plot(times, angl_pulse, color=color[1], label="$\phi (t)$")
@@ -149,7 +148,7 @@ class RydbergQubitSchedule():
                 axis[i].set_ylabel(f'{key}')
                 axis[i].set_xlim(xmin, xmax)
                 axis[i].legend()
-        
+               
         fig.suptitle(f'Couplings {name}', fontsize=16)
         
         if not plot: return fig, axis
@@ -357,6 +356,7 @@ class RydbergQuantumRegister():
         atomic_register = self._build(nsteps=nsteps, rtol=rtol, max_steps=max_steps)
         atomic_register.compile()
         atomic_register.buildInteractions(c6=self.c6, c3=self.c3)
+        atomic_register.buildTNHamiltonian()
         atomic_register.playSim(mode='control')
 
         self.atomic_register = atomic_register
