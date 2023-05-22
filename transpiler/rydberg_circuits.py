@@ -50,6 +50,7 @@ class RydbergQubitSchedule():
         self.times = times
         
         self._merge_pulses()
+        self.q_schedule = self
 
     def _merge_pulses(self):
 
