@@ -20,8 +20,8 @@ class UxySchedule(GateSchedule):
         self._schedule()    
 
     def _schedule(self) -> RydbergQubitSchedule:
-        omega = self.omega
-        
+        omega = 2*np.pi*self.freq
+        self.omega = omega
         if self.shape == "square":
             ShapedPulse = SquarePulse
         elif self.shape == "gaussian":
@@ -29,14 +29,10 @@ class UxySchedule(GateSchedule):
         else:
             raise ValueError(f"{self.shape} is not a valid shape.")
         
-        if self.theta == 0:    
-            pulse_1 = ShapedPulse(t_start=self.t_start, t_end=self.t_end)
-            pulse_t1 = SquarePulse(t_start=self.t_start, t_end=pulse_1.t_end)
-            complx_pulse_1 = pulse_1.function*np.exp(+1j*2*self.phi*pulse_t1.function)
-        else:
-            pulse_1 = ShapedPulse(t_start=self.t_start, area=self.theta/omega)
-            pulse_t1 = SquarePulse(t_start=self.t_start, t_end=pulse_1.t_end)
-            complx_pulse_1 = pulse_1.function*np.exp(+1j*2*self.phi*pulse_t1.function)
+        pulse_1 = ShapedPulse(t_start=self.t_start, area=self.theta/omega)
+        
+        pulse_t1 = SquarePulse(t_start=self.t_start, t_end=pulse_1.t_end)
+        complx_pulse_1 = pulse_1.function*np.exp(-1j*self.phi*pulse_t1.function)
             
         self.t_end = pulse_1.t_end
         
