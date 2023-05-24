@@ -339,25 +339,25 @@ class RydbergQuantumRegister():
             layout = self.layout
         )
 
-        atomic_register.buildTNHamiltonian()
+        atomic_register.buildTNHamiltonian(); 
+        atomic_register.registerMap(plotON=False, figure_size=(3,3)); 
+
+        atomic_register.simOpts = qt.Options(nsteps=nsteps, rtol=rtol, max_step=max_steps)
+        return atomic_register
+
+    def compile(self, nsteps=10000, rtol=1e-6, max_steps = 10e-6):
+        atomic_register = self._build(nsteps=nsteps, rtol=rtol, max_steps=max_steps)
+        atomic_register.compile()
+        atomic_register.buildInteractions(c6=-2*np.pi*17950,c3=2*np.pi*7950); 
         try:
             atomic_register.buildNLindbladians()
         except:
             pass
-        atomic_register.buildNObservables()
-        atomic_register.buildNinitState()
-        
+        atomic_register.buildNObservables();
+        atomic_register.buildNinitState();
 
-        atomic_register.simOpts = qt.Options(nsteps=nsteps, rtol=rtol, max_step=max_steps)
-        atomic_register.registerMap(plotON=False)
-        return atomic_register
+        atomic_register.playSim(mode='control'); 
 
-    def compile(self, nsteps=10000, rtol=1e-6, max_steps=10e-6):
-        atomic_register = self._build(nsteps=nsteps, rtol=rtol, max_steps=max_steps)
-        atomic_register.compile()
-        atomic_register.buildInteractions(c6=self.c6, c3=self.c3)
-        atomic_register.buildTNHamiltonian()
-        atomic_register.playSim(mode='control')
 
         self.atomic_register = atomic_register
 
