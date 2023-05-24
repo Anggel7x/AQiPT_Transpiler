@@ -63,7 +63,7 @@ class GaussianPulse():
         elif self.area != None and self.t_start != None: # Segundo modo
             self.g_std = (self.area/(pow(4*np.pi, 1/2)*np.abs(self.g_Amp)))
             self.width = self.g_std*4
-            self._std_adjustment()
+          #  self._std_adjustment()
             self.width = self.g_std*4
             self.t_o = self.t_start + self.width
             self.g_center = self.t_o
