@@ -2,6 +2,7 @@ from .transpilation_rules import *
 from .rydberg_circuits import RydbergQubitSchedule, RydbergRegisterSchedule
 from .gate_scheduler.UxySchedule import CERO_FUNCTION
 
+
 def extract_qc_data(qc):
     gates = []
 
@@ -10,8 +11,6 @@ def extract_qc_data(qc):
         params = d.operation.params
         num_qubits = d.operation.num_qubits
         qubits = [d.qubits[i].index for i in range(0, num_qubits)]
-
-        print(f"{name}, {params}, {num_qubits}, {qubits}")
         gates.append((name, params, num_qubits, qubits))
         
     return gates
