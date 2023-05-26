@@ -37,6 +37,8 @@ class CphaseSchedule(GateSchedule):
         rt2 = UxySchedule(theta = A, t_start=rt1.t_end + t_2, freq=freq, shape=shape, pair=t_pair)
         rc2 = UxySchedule(theta = A, t_start=rc1.t_end + t_2, freq=freq, shape=shape, pair=c_pair)
 
+        self.t_end = rt2.t_end
+        
         rt1.q_schedule.add_function(rt2.q_schedule.coupling_pulses["Coupling0"][2], "Coupling0")
         rc1.q_schedule.add_function(rc2.q_schedule.coupling_pulses["Coupling0"][2], "Coupling0")
         self.q_schedule = (rc1, rt1) # control and target schedules
