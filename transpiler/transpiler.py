@@ -45,3 +45,46 @@ def transpile(gates, transpilation_rules, num_qubits, **kwargs):
         apply_rule(**args)
         
     return circuit_schedule
+
+
+def construct_register_schedule(circuit_schedule, num_qubits):
+    register_schedule = []
+    for i in range(0, num_qubits):
+        
+        # get the list of schedules of the qubit
+
+        qubit_schedules = circuit_schedule[str(i)][0]
+        qubit_couplings = {}
+        qubit_detunings = {}
+        if qubit_schedules != []:
+            
+            q_couplings = [ q_s.q_schedule.coupling_pulses for q_s in qubit_schedules]
+        
+            for j, q_c in enumerate(q_couplings):
+                for i, value in enumerate(q_c.values()):
+                    pair = value[0]
+                    freq = value[1]
+                    func = value[2]
+                    qubit_couplings[f'Coupling{i+j}'] = [pair, freq, func]
+        
+            q_detunings = [ q_s.q_schedule.detuning_pulses for q_s in qubit_schedules]
+            
+            for j, q_c in enumerate(q_detunings):
+                for i, value in enumerate(q_c.values()):
+                    pair = value[0]
+                    freq = value[1]
+                    func = value[2]
+                                
+                    qubit_detunings[f'Detuning{i+j}'] = [pair, freq, func]
+            
+            # Construct qubit schedule
+            qubit_schedule = RydbergQubitSchedule(coupling_pulses=qubit_couplings, detuning_pulses=qubit_detunings)
+        else:
+            qubit_couplings = {'Coupling0' : [[0,1], 0, CERO_FUNCTION.function]}
+            qubit_schedule = RydbergQubitSchedule(coupling_pulses=qubit_couplings, detuning_pulses=qubit_couplings)
+            
+        register_schedule.append(qubit_schedule)
+    
+    return register_schedule
+
+
