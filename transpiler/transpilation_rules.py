@@ -265,3 +265,15 @@ def get_transpilation_rule(name, transpilation_rules):
     circuit_schedule[str(ctrl)][1] = XY.t_end  + TIME_SLEEP
     circuit_schedule[str(targt)][1] = XY.t_end  + TIME_SLEEP
     
+transpilation_rules ={
+    'rx' : rx_rule,
+    'ry' : ry_rule,
+    'rz' : rz_rule,
+    'x' : x_rule,
+    'y' : y_rule,
+    'z' : z_rule,
+    'h' : h_rule,
+    'cx' : cx_rule,
+    'cp' : cp_rule,
+    'iswap' : iswap_rule
+}
