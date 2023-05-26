@@ -9,10 +9,40 @@ TIME_SLEEP = 0
 
 
 def get_transpilation_rule(name, transpilation_rules):
+    """This function gets the functional asociation between the name
+    of the gate and the defined transpilation rules.
+
+    Args:
+        name (str): Name of the gate inside the QuantumCircuit.
+        transpilation_rules (dic): Defined transpilation rules.
+
+    Raises:
+        ValueError: If there's no rule defined for the name of the gate.
+
+    Returns:
+        func: Function that describes the transpilation rule.
+    """
     try:
         return transpilation_rules[name]
     except:
         raise ValueError(f'No transpilation rule for {name}')
+
+
+""" (name)_rule(args):
+
+    Transpilation rule for the (name) gate.
+
+    Args:
+        name (str): Name of the gate inside the QuantumCircuit.
+        params (List[float]): List of parameters, normally angles, that some gates need.
+        num_qubits (int): Number of qubits that the gate is applied
+        qubits (List[int]): List that contains the number of the qubit(s) which is applied on.
+        circuit_schedule (dict): Dictionary than contains the schedule of the circuit so far.
+
+    Raises:
+        ValueError: If name does not match.
+        ValueError: If the number of qubits does not match.
+"""
 
 
     if name != "rx":
