@@ -1,7 +1,6 @@
 import numpy as np
 from .gate_scheduler.schedules import *
 
-circuit_schedule = {}
 freq = 1
 shape = "square"
 c6 = -2*np.pi*1000
@@ -45,6 +44,8 @@ def get_transpilation_rule(name, transpilation_rules):
 """
 
 
+def rx_rule(name, params, num_qubits, qubits, circuit_schedule):
+    
     if name != "rx":
         raise ValueError(f"Name {name} does not match for this rule")
     
@@ -63,8 +64,9 @@ def get_transpilation_rule(name, transpilation_rules):
     
     # Update the circuit schedule
     qubit_info[0].append(Rx)
-    qubit_info[1] = Rx.t_end
     qubit_info[1] = Rx.t_end + TIME_SLEEP
+
+def ry_rule(name, params, num_qubits, qubits, circuit_schedule):
     
     if name != "ry":
         raise ValueError(f"Name {name} does not match for this rule")
@@ -85,6 +87,9 @@ def get_transpilation_rule(name, transpilation_rules):
     # Update the circuit schedule
     qubit_info[0].append(Ry)
     qubit_info[1] = Ry.t_end + TIME_SLEEP
+    
+def rz_rule(name, params, num_qubits, qubits, circuit_schedule):
+    
     if name != "rz":
         raise ValueError(f"Name {name} does not match for this rule")
     
@@ -104,6 +109,9 @@ def get_transpilation_rule(name, transpilation_rules):
     # Update the circuit schedule
     qubit_info[0].append(Rz)
     qubit_info[1] = Rz.t_end + TIME_SLEEP
+
+def x_rule(name, params, num_qubits, qubits, circuit_schedule):
+    
     if name != "x":
         raise ValueError(f"Name {name} does not match for this rule")
     
@@ -122,6 +130,8 @@ def get_transpilation_rule(name, transpilation_rules):
     # Update the circuit schedule
     qubit_info[0].append(Rx)
     qubit_info[1] = Rx.t_end + TIME_SLEEP
+    
+def y_rule(name, params, num_qubits, qubits, circuit_schedule):
     
     if name != "y":
         raise ValueError(f"Name {name} does not match for this rule")
@@ -143,6 +153,8 @@ def get_transpilation_rule(name, transpilation_rules):
     qubit_info[0].append(Ry)
     qubit_info[1] = Ry.t_end + TIME_SLEEP
     
+def z_rule(name, params, num_qubits, qubits, circuit_schedule):
+    
     if name != "z":
         raise ValueError(f"Name {name} does not match for this rule")
     
@@ -161,6 +173,9 @@ def get_transpilation_rule(name, transpilation_rules):
     # Update the circuit schedule
     qubit_info[0].append(Rz)
     qubit_info[1] = Rz.t_end + TIME_SLEEP
+
+def h_rule(name, params, num_qubits, qubits, circuit_schedule):
+    
     if name != "h":
         raise ValueError(f"Name {name} does not match for this rule")
     
@@ -181,6 +196,8 @@ def get_transpilation_rule(name, transpilation_rules):
     qubit_info[0].append(Uxy2)
     qubit_info[1] = Uxy2.t_end + TIME_SLEEP
     
+def cx_rule(name, params, num_qubits, qubits, circuit_schedule):
+    
     if name != "cx":
         raise ValueError(f"Name {name} does not match for this rule")
     
@@ -191,7 +208,6 @@ def get_transpilation_rule(name, transpilation_rules):
         
     # Get the qubit list of schedules and end time
     control_info = circuit_schedule[str(ctrl)]
-    control_schedule = control_info[0]
     control_t_end = control_info[1]
     
     # Get the qubit list of schedules and end time
@@ -208,6 +224,8 @@ def get_transpilation_rule(name, transpilation_rules):
     circuit_schedule[str(ctrl)][1] = CUxy.t_end  + TIME_SLEEP
     circuit_schedule[str(targt)][1] = CUxy.t_end  + TIME_SLEEP
     
+def cp_rule(name, params, num_qubits, qubits, circuit_schedule):
+    
     if name != "cp":
         raise ValueError(f"Name {name} does not match for this rule")
     
@@ -217,10 +235,8 @@ def get_transpilation_rule(name, transpilation_rules):
     phi11 = params[0]
     ctrl, targt =  qubits[0], qubits[1]
         
-        
     # Get the qubit list of schedules and end time
     control_info = circuit_schedule[str(ctrl)]
-    control_schedule = control_info[0]
     control_t_end = control_info[1]
     
     # Get the qubit list of schedules and end time
@@ -237,6 +253,9 @@ def get_transpilation_rule(name, transpilation_rules):
 
     circuit_schedule[str(ctrl)][1] = CP.t_end  + TIME_SLEEP
     circuit_schedule[str(targt)][1] = CP.t_end  + TIME_SLEEP
+        
+def iswap_rule(name, params, num_qubits, qubits, circuit_schedule):
+    
     if name != "iswap":
         raise ValueError(f"Name {name} does not match for this rule")
     
@@ -251,7 +270,6 @@ def get_transpilation_rule(name, transpilation_rules):
     
     # Get the qubit list of schedules and end time
     target_info = circuit_schedule[str(targt)]
-    target_schedule = target_info[0]
     target_t_end = target_info[1]
     
     
