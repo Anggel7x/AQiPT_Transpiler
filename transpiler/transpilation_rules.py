@@ -15,7 +15,11 @@ def get_transpilation_rule(name, transpilation_rules):
         raise ValueError(f'No transpilation rule for {name}')
 
 
-def rx_rule(name, params, num_qubits, qubits):
+    if name != "rx":
+        raise ValueError(f"Name {name} does not match for this rule")
+    
+    if num_qubits != 1:
+        raise ValueError(f"Number of qubits {num_qubits} != 1")
     
     theta = params[0]
     qubit = qubits[0]
@@ -33,7 +37,11 @@ def rx_rule(name, params, num_qubits, qubits):
     qubit_info[1] = Rx.t_end
 
     
-def ry_rule(name, params, num_qubits, qubits):
+    if name != "ry":
+        raise ValueError(f"Name {name} does not match for this rule")
+    
+    if num_qubits != 1:
+        raise ValueError(f"Number of qubits {num_qubits} != 1")
     
     theta = params[0]
     qubit = qubits[0]
@@ -48,9 +56,11 @@ def ry_rule(name, params, num_qubits, qubits):
     
     # Update the circuit schedule
     qubit_info[0].append(Ry)
-    qubit_info[1] = Ry.t_end
+    if name != "rz":
+        raise ValueError(f"Name {name} does not match for this rule")
     
-def rz_rule(name, params, num_qubits, qubits):
+    if num_qubits != 1:
+        raise ValueError(f"Number of qubits {num_qubits} != 1")
     
     theta = params[0]
     qubit = qubits[0]
@@ -65,9 +75,11 @@ def rz_rule(name, params, num_qubits, qubits):
     
     # Update the circuit schedule
     qubit_info[0].append(Rz)
-    qubit_info[1] = Rz.t_end
-
-def x_rule(name, params, num_qubits, qubits):
+    if name != "x":
+        raise ValueError(f"Name {name} does not match for this rule")
+    
+    if num_qubits != 1:
+        raise ValueError(f"Number of qubits {num_qubits} != 1")
     
     qubit = qubits[0]
         
@@ -83,7 +95,11 @@ def x_rule(name, params, num_qubits, qubits):
     qubit_info[0].append(Rx)
     qubit_info[1] = Rx.t_end
     
-def y_rule(name, params, num_qubits, qubits):
+    if name != "y":
+        raise ValueError(f"Name {name} does not match for this rule")
+    
+    if num_qubits != 1:
+        raise ValueError(f"Number of qubits {num_qubits} != 1")
     
     qubit = qubits[0]
         
@@ -99,7 +115,11 @@ def y_rule(name, params, num_qubits, qubits):
     qubit_info[0].append(Ry)
     qubit_info[1] = Ry.t_end
     
-def z_rule(name, params, num_qubits, qubits):
+    if name != "z":
+        raise ValueError(f"Name {name} does not match for this rule")
+    
+    if num_qubits != 1:
+        raise ValueError(f"Number of qubits {num_qubits} != 1")
     
     qubit = qubits[0]
         
@@ -113,9 +133,11 @@ def z_rule(name, params, num_qubits, qubits):
     
     # Update the circuit schedule
     qubit_info[0].append(Rz)
-    qubit_info[1] = Rz.t_end
-
-def h_rule(name, params, num_qubits, qubits):
+    if name != "h":
+        raise ValueError(f"Name {name} does not match for this rule")
+    
+    if num_qubits != 1:
+        raise ValueError(f"Number of qubits {num_qubits} != 1")
     
     qubit = qubits[0]
         
@@ -132,8 +154,11 @@ def h_rule(name, params, num_qubits, qubits):
     qubit_info[0].append(Uxy2)
     qubit_info[1] = Uxy2.t_end
     
-
-def cx_rule(name, params, num_qubits, qubits):
+    if name != "cx":
+        raise ValueError(f"Name {name} does not match for this rule")
+    
+    if num_qubits != 2:
+        raise ValueError(f"Number of qubits {num_qubits} != 2")
     
     ctrl, targt = qubits[1], qubits[0]
         
@@ -154,10 +179,11 @@ def cx_rule(name, params, num_qubits, qubits):
     circuit_schedule[str(ctrl)][0].append(CUxy.q_schedule[0])
     circuit_schedule[str(targt)][0].append(CUxy.q_schedule[1])
 
-    circuit_schedule[str(ctrl)][1] = CUxy.t_end
-    circuit_schedule[str(targt)][1] = CUxy.t_end
+    if name != "cp":
+        raise ValueError(f"Name {name} does not match for this rule")
     
-def cp_rule(name, params, num_qubits, qubits):
+    if num_qubits != 2:
+        raise ValueError(f"Number of qubits {num_qubits} != 2")
     
     phi11 = params[0]
     ctrl, targt =  qubits[0], qubits[1]
@@ -181,10 +207,11 @@ def cp_rule(name, params, num_qubits, qubits):
     circuit_schedule[str(ctrl)][0].append(CP.q_schedule[0])
     circuit_schedule[str(targt)][0].append(CP.q_schedule[1])
 
-    circuit_schedule[str(ctrl)][1] = CP.t_end
-    circuit_schedule[str(targt)][1] = CP.t_end
-        
-def iswap_rule(name, params, num_qubits, qubits):
+    if name != "iswap":
+        raise ValueError(f"Name {name} does not match for this rule")
+    
+    if num_qubits != 2:
+        raise ValueError(f"Number of qubits {num_qubits} != 2")
     
     ctrl, targt =  qubits[0], qubits[1]
         
