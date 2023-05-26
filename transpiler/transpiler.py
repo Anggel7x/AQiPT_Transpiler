@@ -29,11 +29,19 @@ def circuit_schedule_init(num_qubits):
     
     return circuit_schedule
 
-def transpile(gates):
+
+
+def transpile(gates, transpilation_rules, num_qubits, **kwargs):
+    circuit_schedule = circuit_schedule_init(num_qubits)
     for gate in gates:
         name, params, num_qubits, qubits = gate
-        apply_rule = get_transpilation_rule(name)
-        args = {'name' : name, 'params' : params, 'num_qubits': num_qubits, 'qubits' : qubits}
+        apply_rule = get_transpilation_rule(name, transpilation_rules)
+        args = {
+            'name' : name, 
+            'params' : params, 
+            'num_qubits': num_qubits, 
+            'qubits' : qubits, 
+            'circuit_schedule': circuit_schedule}
         apply_rule(**args)
         
     return circuit_schedule
