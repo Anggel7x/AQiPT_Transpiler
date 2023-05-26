@@ -26,7 +26,7 @@ class CphaseSchedule(GateSchedule):
         t_2 = self.t_2
         freq = self.freq
         shape = self.shape
-        A = 0.206441*(2*np.pi*freq)
+        A = 1/2*(2*np.pi*freq)
         c_pair, t_pair = self.pair[0], self.pair[1]
             
         # 1 -> r
