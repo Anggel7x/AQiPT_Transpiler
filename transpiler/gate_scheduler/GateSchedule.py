@@ -1,11 +1,21 @@
 from transpiler.aqipt_pulses import *
 from transpiler.rydberg_circuits import *
 
-def coupling_detuning_constructors(couplings: List, detunings : List, omega_coup : 20, omega_detu = 0) -> tuple():
+def coupling_detuning_constructors(couplings: List, detunings : List, omega_coup = 20, omega_detu = 0) -> tuple():
     coupling1 = {}
-    for i, coupling in enumerate(couplings):
-        levels , coupling = coupling
-        coupling1['Coupling'+str(i)] = [levels, omega_coup, coupling]
+    
+    if type(omega_coup) == float or  type(omega_coup) == int:
+    
+        for i, coupling in enumerate(couplings):
+            levels , coupling = coupling
+            coupling1['Coupling'+str(i)] = [levels, omega_coup, coupling]
+            
+    elif type(omega_coup) == list:
+        assert len(omega_coup) == len(couplings)
+        
+        for i, coupling in enumerate(couplings):
+            levels , coupling = coupling
+            coupling1['Coupling'+str(i)] = [levels, omega_coup[i], coupling]
 
 
     detuning1 = {}
