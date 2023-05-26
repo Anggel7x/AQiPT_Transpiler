@@ -15,15 +15,16 @@ def extract_qc_data(qc):
         
     return gates
 
-def def_tstart(qubit_schedule):
+def circuit_schedule_init(num_qubits):
     
-    t_start = qubit_schedule[1]
-    return t_start + TIME_SLEEP
-
-def circuit_schedule_init():
+    """
+    circuit_schedule = {
+        "Qubit_#" : [ List[Schedules] , t_end ]
+    }
+    """
     circuit_schedule = {}
 
-    for q in range(0, qc.qregs[0].size):
+    for q in range(0, num_qubits):
         circuit_schedule[str(q)] = [[], 0]
     
     return circuit_schedule
