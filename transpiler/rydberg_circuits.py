@@ -8,6 +8,7 @@ from itertools import product
 RED_HUE = ['firebrick','lightcoral','coral','chocolate']
 BLUE_HUE = ['turquoise', 'paleturquoise','darkturquoise','skyblue']
 PURPLE_HUE = ['slateblue', 'plum','violet','mediumorchid']
+plt.style.use('dark_background')
 
 def merge_pulses(pulses :dict, name: str):
             coupling = {}
