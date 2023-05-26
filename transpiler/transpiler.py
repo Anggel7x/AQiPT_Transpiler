@@ -88,3 +88,12 @@ def construct_register_schedule(circuit_schedule, num_qubits):
     return register_schedule
 
 
+def qc_to_ryd(qc, transpilation_rules):
+    gates = extract_qc_data(qc)
+    num_qubits = qc.qregs[0].size
+    circuit_schedule = {}
+    circuit_schedule = transpile(gates, transpilation_rules, num_qubits)
+    register_sch = construct_register_schedule(circuit_schedule, num_qubits)
+    return RydbergRegisterSchedule(register_sch)
+    
+    
