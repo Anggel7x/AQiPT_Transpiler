@@ -129,7 +129,15 @@ class SquarePulse(ShapedPulse):
 
         
     def _set_parameters(self):
+        """Genera los parametros del pulso.
         
+            -- 1er modo: Se le da un tiempo inicial 't_start' y un tiempo final 't_end'.
+                En este caso el ancho del pulso, el centro y el área ya están determinados.
+                
+            -- 2do modo: Se le da un área 'area' y un tiempo inicial 't_start'.
+                En este caso se determina la desviación estandar y el ancho (que debe ser ajustado), luego
+                se calcula el tiempo central del pulso y los demas parámetros.
+        """
         #Times setting (t_start and t_end)
         
         # The area carries a factor of 1/2 over the calculations given the form of the Hamiltonian
