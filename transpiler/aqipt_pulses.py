@@ -9,7 +9,37 @@ T_MAX = 10
 ARGS = {'sampling':int(5e3), 'bitdepth':16, 'time_dyn': T_MAX}
 PULSE_PARAMS = aqipt.general_params(ARGS)
 
-class GaussianPulse():
+class ShapedPulse():
+    def __init__(self,
+                t_o: Optional[float] = None, 
+                t_start: Optional[float] = None,
+                t_end: Optional[float]  = None,
+                amp: Optional[float] = 1,
+                width: Optional[int] = 0,
+                tp_window: Optional[int] = PULSE_PARAMS.dyn_time,
+                name: Optional[str] = None, 
+                color: Optional[str] = None, 
+                area: Optional[float] = None,
+            ):  
+        
+            self.t_o = t_o
+            self.t_start = t_start
+            self.t_end = t_end
+            self.width = width
+            self.tg = 2*self.width
+            self.amp = amp
+            self.tp_window = tp_window
+            self.name = name
+            self.color = color
+            self.type = None
+            self.area = area
+            self.args = None
+            self.function = None
+
+    def info(self):
+        return f'{self.type} ({self.name}) - Amp:{self.amp:0.5f}, Center: {self.t_o:0.2f}, Gate time: {self.tg:0.5f}'
+            
+class GaussianPulse(ShapedPulse):
     def __init__(self,
                 t_o: Optional[float] = None, 
                 t_start: Optional[float] = None,
@@ -23,19 +53,13 @@ class GaussianPulse():
                 area: Optional[float] = None
                 
         ):
-        self.t_o = t_o
-        self.t_start = t_start
-        self.t_end = t_end
-
+        
+        super().__init__(t_o, t_start, t_end, amp, t_end - t_start, tp_window, name, color, type, area)
+        self.type = "Gaussian Pulse"
         self.g_center = t_o
         self.g_Amp = amp
         self.g_std = g_std
-        self.area = area
-
-        self.tp_window = tp_window
-        self.name = name
-        self.color = color
-        self.type = type
+        
         
         self._set_parameters()
         self.function = self._function()
@@ -82,23 +106,8 @@ class GaussianPulse():
         tp = np.linspace(0, self.tp_window, int((self.tp_window - 0)*PULSE_PARAMS.sampling/PULSE_PARAMS.dyn_time));
         func = control.function(tp, args_list).gaussian()
         return func
-
-    def info(self):
-        return f'Gaussian Pulse ({self.name}) - Amp:{self.g_Amp:0.5f}, Center: {self.g_center:0.2f}, Std: {self.g_std:0.5f}'
-
-    def _std_adjustment(self):
-
-        while self.width < 0.06:
-            self.g_std *= 3
-            self.width = self.g_std*4
-            #self.g_Amp /= 2
             
-        while self.width > 1:
-            self.g_std /= 3
-            self.width = self.g_std*4
-            #self.g_Amp *= 2
-            
-class SquarePulse():
+class SquarePulse(ShapedPulse):
     def __init__(self,
         t_o: Optional[float] = None, 
         t_start: Optional[float] = None,
@@ -112,21 +121,8 @@ class SquarePulse():
         area: Optional[float] = None,
         omega: Optional[float] = None,
     ):  
-        self.t_o = t_o
-        self.t_start = t_start
-        self.t_end = t_end
-        self.width = width
-        self.tg = 2*self.width
-
-        self.amp = amp
-        self.tp_window = tp_window
-        self.name = name
-        self.color = color
-        self.type = type
-        self.area = area
-        self.omega = omega
-
-       
+        super().__init__(t_o,  t_start, t_end, amp, width, tp_window, name, color, area )
+        self.type = "Square Pulse"
         self._set_parameters()
         
         self.function = self._function()
