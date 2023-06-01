@@ -30,13 +30,15 @@ class GateSchedule():
     def __init__(self,
                  t_start: float,
                  freq: float,
-                 pair: list
+                 pair: list,
+                 shape: str
                 ) -> None:
         
         self.t_start = t_start
         self.t_end = t_start
         self.freq = freq
         self.pair = pair
+        self.shape = shape
         self.n_qubits = len(pair)
         self.omega = 2*np.pi*freq
         self.q_schedule = None

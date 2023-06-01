@@ -13,11 +13,10 @@ class CUxySchedule(GateSchedule):
                  pair: list = [[0,1], [0,1]],
                  shape: str = "square") -> None:
         
-        super().__init__(t_start, freq, pair)
+        super().__init__(t_start, freq, pair, shape)
         
         self.theta = theta
         self.phi = phi
-        self.shape = shape
         
         self._schedule()    
 

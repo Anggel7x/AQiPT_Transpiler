@@ -13,10 +13,9 @@ class CphaseSchedule(GateSchedule):
                  pair: list = [[1,2], [1,2]],
                  shape: str = "square") -> None:
         
-        super().__init__(t_start, freq, pair)
+        super().__init__(t_start, freq, pair, shape)
         
         self.t_2 = t_2
-        self.shape = shape
         
         self._schedule()    
 

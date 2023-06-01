@@ -1,8 +1,9 @@
 from transpiler.aqipt_pulses import *
 from transpiler.rydberg_circuits import *
+from transpiler.gate_scheduler.GateSchedule import GateSchedule
 from transpiler.gate_scheduler.UxySchedule import UxySchedule
 
-class PCUxySchedule(UxySchedule):
+class PCUxySchedule(GateSchedule):
     
     def __init__(self,
                  theta: float = np.pi, 
@@ -12,7 +13,10 @@ class PCUxySchedule(UxySchedule):
                  shape: str = "square",
                  pair: list = [0,1]) -> None:
         
-        super().__init__(theta, phi, t_start, freq, shape, pair)
+        super().__init__(t_start, freq, pair, shape)
+        
+        self.theta = theta
+        self.phi = phi
         
         self._schedule()    
 

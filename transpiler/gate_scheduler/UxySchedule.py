@@ -12,10 +12,9 @@ class UxySchedule(GateSchedule):
                  shape: str = "square",
                  pair: list = [0,1]) -> None:
         
-        super().__init__(t_start, freq, pair)
+        super().__init__(t_start, freq, pair, shape)
         self.theta = theta
         self.phi = phi
-        self.shape = shape
         
         self._schedule()    
 

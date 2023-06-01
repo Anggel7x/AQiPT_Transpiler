@@ -12,10 +12,9 @@ class XYSchedule(GateSchedule):
                  pair: list = [[0,2], [1,3]],
                  shape: str = "square") -> None:
         
-        super().__init__(t_start, freq, pair)
+        super().__init__(t_start, freq, pair, shape)
         
         self.t_2 = t_2
-        self.shape = shape
         
         self._schedule()    
 
