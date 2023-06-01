@@ -51,7 +51,6 @@ class GaussianPulse(ShapedPulse):
                 color: Optional[str] = None, 
                 type: Optional[str] = None,
                 area: Optional[float] = None
-                
         ):
         
         super().__init__(t_o, t_start, t_end, amp, t_end - t_start, tp_window, name, color, type, area)
@@ -63,9 +62,6 @@ class GaussianPulse(ShapedPulse):
         
         self._set_parameters()
         self.function = self._function()
-        self.width = self.t_end - self.t_start
-    
-    
     
     def _set_parameters(self):
         """Genera los parametros del pulso.
@@ -102,7 +98,7 @@ class GaussianPulse(ShapedPulse):
                     'name': self.name,
                     'color': self.color,
                     'type': self.type}
-
+        self.args = args_list
         tp = np.linspace(0, self.tp_window, int((self.tp_window - 0)*PULSE_PARAMS.sampling/PULSE_PARAMS.dyn_time));
         func = control.function(tp, args_list).gaussian()
         return func
@@ -117,14 +113,12 @@ class SquarePulse(ShapedPulse):
         tp_window: Optional[int] = PULSE_PARAMS.dyn_time,
         name: Optional[str] = None, 
         color: Optional[str] = None, 
-        type: Optional[str] = None,
         area: Optional[float] = None,
-        omega: Optional[float] = None,
     ):  
         super().__init__(t_o,  t_start, t_end, amp, width, tp_window, name, color, area )
         self.type = "Square Pulse"
-        self._set_parameters()
         
+        self._set_parameters()
         self.function = self._function()
 
         
@@ -152,22 +146,10 @@ class SquarePulse(ShapedPulse):
         elif self.area != None and self.t_start != None:
             self.area = self.area
             self.width = 1/2*(self.area/(np.abs(self.amp)))
-          #  self._width_adjustment()
             self.t_o = self.t_start + self.width
             self.tg = self.area
             self.t_end = self.t_start + self.tg
-    
-    def _width_adjustment(self):
-        
-        while self.width < 0.06:
-            self.width *= 3
-            #self.amp /= 2
             
-        while self.width > 1:
-            self.width /= 3
-            #self.amp *= 2
-            
-        
     def _function(self):
 
         args_list = {'amp': self.amp,
@@ -178,13 +160,10 @@ class SquarePulse(ShapedPulse):
                     'color': self.color,
                     'type': self.type}
         
+        self.args = args_list
         tp = np.linspace(0, self.tp_window, int((self.tp_window-0)*PULSE_PARAMS.sampling/PULSE_PARAMS.dyn_time)); #time domain function
         func = control.function(tp, args_list).step()
         return func
-
-    def info(self):
-        return f'Square Pulse ({self.name}) - Amp:{self.amp:0.5f}, Center: {self.t_o:0.2f}, Width: {self.width:0.5f}'
-
 
 # Constant Pulses
 CERO_FUNCTION = SquarePulse(t_start = 0, t_end=0, amp=0)
