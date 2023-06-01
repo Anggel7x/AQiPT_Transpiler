@@ -240,22 +240,19 @@ class RydbergQubit():
 
     def __init__(self,
         nr_levels: int = 2,
-        rydberg_states: Dict[str, Any] = {'RydbergStates': [1], 'l_values':[0, 1]}, 
+        rydberg_states: Dict[str, Any] = {'RydbergStates': [], 'l_values':[]}, 
         dissipators: Dict[str, Any] = {'Dissipator0': [[0,0], 0]},
         initial_state: Optional[int] = 0,
         name: Optional[str] = 'qubit',
         schedule: Optional[RydbergQubitSchedule] = None,
-        complex = True
     ):
         self.nr_levels = nr_levels
         self.rydberg_states = rydberg_states
         self.dissipators = dissipators
         self.initial_state = initial_state
         self.name = name
-        self.atomic_register = False
         self.schedule = schedule
         self.atom = None
-        self.complex = complex
 
     def build(self):
 
@@ -273,13 +270,17 @@ class RydbergQubit():
                 'couplings': couplings_q, 
                 'detunings': detunings_q, 
                 'dissipators': dissipators_q,
-                'rydbergstates': rydbergstates_q}; #wrapping dynamic params in dictionary
+                'rydbergstates': rydbergstates_q}; 
 
         pulsed_qubit = emulator.atomicModel(times, Nrlevels, psi0, sim_params_q, name=self.name)
         pulsed_qubit.modelMap(plotON=False)
 
         pulsed_qubit.buildTHamiltonian()
-        if not self.complex: pulsed_qubit.buildLindbladians()
+        pulsed_qubit.buildHamiltonian()
+        try:
+            pulsed_qubit.buildLindbladians()
+        except:
+            pass
         pulsed_qubit.buildObservables()
 
         pulsed_qubit.playSim(mode='control')
@@ -343,7 +344,7 @@ class RydbergQuantumRegister():
         self.atomic_register = None
         self.schedule = {}
         
-    def atoms(self):
+    def _atoms(self):
 
         atoms = []
         for qubit in self.qubits:
@@ -359,7 +360,7 @@ class RydbergQuantumRegister():
     def _build(self, nsteps=10000, rtol=1e-6, max_steps=10e-6):
 
         atomic_register = emulator.atomicQRegister(
-            physicalRegisters= self.atoms(),
+            physicalRegisters= self._atoms(),
             initnState = self.init_state,
             name = self.name,
             connectivity= self.connectivity,
@@ -376,6 +377,7 @@ class RydbergQuantumRegister():
         atomic_register = self._build(nsteps=nsteps, rtol=rtol, max_steps=max_steps)
         atomic_register.compile()
         atomic_register.buildInteractions(c6=self.c6, c3=self.c3); 
+        
         try:
             atomic_register.buildNLindbladians()
         except:
@@ -384,7 +386,6 @@ class RydbergQuantumRegister():
         atomic_register.buildNinitState()
 
         atomic_register.playSim(mode='control')
-
 
         self.atomic_register = atomic_register
 
@@ -400,22 +401,12 @@ class RydbergQuantumRegister():
             couplings.append(coupling)
             detunings.append(detuning)
 
-        self.schedule['Couplings'] = couplings
-        self.schedule['Detunings'] = detunings
+        ryd_sche = RydbergRegisterSchedule(couplings, detunings)
+        self.schedule = ryd_sche
 
     def plot_schedule(self, xmin=0, xmax=T_MAX, couplings=True, detunings=False, color_coup =BLUE_HUE, color_det=RED_HUE):
 
-        if couplings:
-            for i in range(len(self.qubits)):
-                qubit = self.qubits[i]
-                qubit.schedule.plot_couplings(xmin, xmax, name=f' {qubit.name}', color=color_coup)
-                
-                
-        
-        if detunings:
-            for i in range(len(self.qubits)):
-                qubit = self.qubits[i]
-                qubit.schedule.plot_detunings(xmin, xmax, name=f' {qubit.name}', color=color_det)
+        self.schedule.plot_schedule(xmin, xmax, couplings, detunings, color_coup, color_det)
 
     def plot_results(self , color = PURPLE_HUE):
         simRes = self.atomic_register.getResult()
@@ -450,28 +441,3 @@ class RydbergQuantumRegister():
         fig.supxlabel('Time', fontsize=18)
         plt.show()
 
-class RydbergRegisterSchedule():
-    
-    def __init__(
-        self,
-        coupling_pulses: List[RydbergQubitSchedule],
-        detuning_pulses: List[RydbergQubitSchedule] = [], 
-        times = PULSE_PARAMS.timebase()
-    ):
-        
-        self.coupling_pulses = coupling_pulses
-        self.detuning_pulses = detuning_pulses
-        self.times = times
-        self.n_qubits = len(coupling_pulses)
-        
-    def plot_schedule(self, xmin=0, xmax=T_MAX, couplings=True, detunings=False, color_coup=BLUE_HUE, color_det=RED_HUE):
-
-        if couplings:
-            for i in range(len(self.coupling_pulses)):
-                schedule = self.coupling_pulses[i]
-                schedule.plot_couplings(xmin, xmax, name=f' {i}', color=color_coup)
-                
-        if detunings != []:
-            for i in range(len(self.detuning_pulses)):
-                schedule = self.detuning_pulses[i]
-                schedule.plot_couplings(xmin, xmax, name=f' {i}', color=color_coup)
