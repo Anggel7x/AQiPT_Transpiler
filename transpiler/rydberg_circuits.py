@@ -39,7 +39,6 @@ def merge_pulses(pulses :dict, name: str):
 
             return coupling
 
-
 class RydbergQubitSchedule():
     def __init__(self,
         coupling_pulses: Any,
@@ -210,6 +209,32 @@ class RydbergQubitSchedule():
 
         self.plot_couplings(xmin, xmax, name=name, color=color_coup)
         self.plot_detunings(xmin,xmax, name=name, color=color_det)
+
+class RydbergRegisterSchedule():
+    
+    def __init__(
+        self,
+        coupling_pulses: List[RydbergQubitSchedule],
+        detuning_pulses: List[RydbergQubitSchedule] = [], 
+        times = PULSE_PARAMS.timebase()
+    ):
+        
+        self.coupling_pulses = coupling_pulses
+        self.detuning_pulses = detuning_pulses
+        self.times = times
+        self.n_qubits = len(coupling_pulses)
+        
+    def plot_schedule(self, xmin=0, xmax=T_MAX, couplings=True, detunings=False, color_coup=BLUE_HUE, color_det=RED_HUE):
+
+        if couplings:
+            for i in range(len(self.coupling_pulses)):
+                schedule = self.coupling_pulses[i]
+                schedule.plot_couplings(xmin, xmax, name=f' {i}', color=color_coup)
+                
+        if detunings and self.detuning_pulses != []:
+            for i in range(len(self.detuning_pulses)):
+                schedule = self.detuning_pulses[i]
+                schedule.plot_couplings(xmin, xmax, name=f' {i}', color=color_coup)
 
 class RydbergQubit():
 
