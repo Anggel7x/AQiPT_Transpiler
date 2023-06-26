@@ -3,7 +3,7 @@
 # Author(s): Manuel Morgado. Universite de Strasbourg. Laboratory of Exotic Quantum Matter - CESQ
 # Contributor(s): 
 # Created: 2021-04-08
-# Last update: 2023-05-07
+# Last update: 2023-06-26
 
 
 #libs
@@ -19,11 +19,16 @@ import itertools
 from typing import Iterator, List
 import copy
 
+import datetime
+
 # import warnings
 # warnings.filterwarnings('ignore')
 
 import networkx as nx
 from tqdm import tqdm
+
+HZ_2_MHZ = 1/1e6;
+HZ_2_KHZ = 1/1e3;
 
 #####################################################################################################
 #atomicModel AQiPT class
@@ -32,7 +37,6 @@ from tqdm import tqdm
 def eucdist(xa,ya,xb,yb,za=0,zb=0):
     '''
         Euclidean distance in 2D 
--
         Measure of the distance between the coordinates of two positions
 
         INPUTS:
@@ -304,6 +308,7 @@ class atomicModel:
         self.tHamiltonian = None; #time-dependent Hamiltonian as QobjEvo() of QuTiP
         self.internalInteraction = None; #internal interaction of the qubit in case of ensemble qubits
 
+        self.zeeman_splitting_values = [];
         self.cops = None; #lindbladians
         self.mops = []; #observables
 
@@ -311,13 +316,17 @@ class atomicModel:
         self.atomicMap = {};
         self._graph = None;
         
+        self._blochsphere = None;
+
         self._name = name;
         self.simOpts = simOpt;
         self.simRes = None;
+        self.simRes_history = [];
         
-        self.__mode = 'free'
+        self.__mode = 'free';
+
     
-    def playSim(self, mode='free'):
+    def playSim(self, mode='free', psi0='density-matrix'):
         '''
             Execute simulation
 
@@ -332,86 +341,68 @@ class atomicModel:
         '''
 
         if self.__mode=='free':
-            self.simRes = qt.mesolve(self.Hamiltonian, qt.ket2dm(self.initState), self.times, c_ops=self.cops, e_ops=self.mops, options=self.simOpts);
+            if psi0=='state-vector':
+                self.simRes = qt.mesolve(self.Hamiltonian, self.initState, self.times, c_ops=self.cops, e_ops=self.mops, options=self.simOpts);
+                self.simRes_history.append({str(datetime.datetime.now()) : self.simRes});
+                print('Solving for \'free\' state-vector initial state.')
+
+            elif psi0=='density-matrix':
+                self.simRes = qt.mesolve(self.Hamiltonian, qt.ket2dm(self.initState), self.times, c_ops=self.cops, e_ops=self.mops, options=self.simOpts);
+                self.simRes_history.append({str(datetime.datetime.now()) : self.simRes});
+                print('Solving for \'free\' density-matrix initial state')
+
         elif self.__mode=='control':
 
             if self.cops==None:
                 self.simRes = qt.mesolve(self.tHamiltonian, self.initState, self.times, e_ops=self.mops, options=self.simOpts);
+                self.simRes_history.append({str(datetime.datetime.now()) : self.simRes});
+
             else:
                 self.simRes = qt.mesolve(self.tHamiltonian, self.initState, self.times, c_ops=self.cops, e_ops=self.mops, options=self.simOpts);
+                self.simRes_history.append({str(datetime.datetime.now()) : self.simRes});
 
+    def add_ZeemanSplitting(self, values_lst:list=None, atom=None, Bfield=None, state_lst=None, buildHamiltonian=False, buildTHamiltonian=False, printON=False):
     
-    # def buildTHamiltonian(self):
-    #     '''
-    #         Build time-dependent Hamiltonian 
+        mu = 13996244936.1; #Hz/T
+        _zeeman_splitting_values = [];
 
-    #         Construct the time-dependent Hamiltonian of the atomicModel() and store it in the attribute tHamiltonian, the time-dependt pulses
-    #         in Hpulses and the parts structure of the Hamiltonian in _lstHamiltonian.
-    #         .
-    #     '''
-        
-    #     self.__mode = 'control'
+        if values_lst==None:
             
-    #     _HQobjEVO = [];
-    #     _HAQiPTpulses = [];
+            _state_idx=0;
+            for detuning in self.dynParams['detunings']:
+                
+                state = state_lst[_state_idx];
+                
+                gfactor = atom.getLandegfExact(state['l'], state['j'], state['f'], state['s']);
+                _HF_zeeman = mu*Bfield*gfactor*state['mf']*HZ_2_MHZ; #for weak field in MHz and relative to the center of energy at mf=0
+                
+                _zeeman_splitting_values.append(_HF_zeeman);
+
+                self.dynParams['detunings'][str(detuning)][1]+=_HF_zeeman;
+                _state_idx+=1; 
         
-    #     if self.internalInteraction == None:
-
-    #         for element in range(len(self.dynParams['couplings'])):
-                
-    #             _HStruct = 0.5*self.dynParams['couplings']['Coupling'+str(element)][1] * (self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]] + self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]].dag());
-    #             _HtDependency = self.dynParams['couplings']['Coupling'+str(element)][2];
-    #             _HAQiPTpulses.append(_HtDependency);
-    #             _HQobjEVO.append([_HStruct, _HtDependency]);
-    #             self._lstHamiltonian.append(_HStruct);
+        elif values_lst!=None:
             
-    #         for element in range(len(self.dynParams['detunings'])):
-                
-    #             _HStruct = 0.5*self.dynParams['detunings']['Detuning'+str(element)][1]*(self._ops[(self.dynParams['detunings']['Detuning'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['detunings']['Detuning'+str(element)][0])[1]] );
-    #             _HtDependency = self.dynParams['detunings']['Detuning'+str(element)][2];
-    #             _HAQiPTpulses.append(_HtDependency);
-    #             _HQobjEVO.append([_HStruct, _HtDependency]);
-    #             self._lstHamiltonian.append(_HStruct);
+            _value_idx=0;
+            for detuning in self.dynParams['detunings']:
+                self.dynParams['detunings'][str(detuning)][1]+=values_lst[_value_idx];
+                _value_idx+=1;    
+
+                _zeeman_splitting_values+=values_lst;
+        else:
+            print('No method added.')
         
-    #     else:
+        self.zeeman_splitting_values+=_zeeman_splitting_values;
+        
+        if printON==True:
+            print(self.zeeman_splitting_values)
 
-    #         for element in range(len(self.dynParams['couplings'])):
-
-    #             _Fullspace = [iden(self.Nrlevels)]*self.dynParams['Ensembles']['Atom_nr'];
-
-    #             _Fullspace_lst=[];
-    #             for atom_idx in range(self.dynParams['Ensembles']['Atom_nr']):
-    #                 _bufFullspace = _Fullspace.copy();
-    #                 _bufFullspace[atom_idx] = self.dynParams['couplings']['Coupling'+str(element)][1] * (self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]] + self._ops[(self.dynParams['couplings']['Coupling'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['couplings']['Coupling'+str(element)][0])[1]].dag());
-    #                 _Fullspace_lst.append(qt.tensor(_bufFullspace));
-
-    #             _HStruct = sum(_Fullspace_lst);
-    #             _HtDependency = self.dynParams['couplings']['Coupling'+str(element)][2];
-
-    #             _HAQiPTpulses.append(_HtDependency);
-    #             _HQobjEVO.append([_HStruct, _HtDependency]);
-    #             self._lstHamiltonian.append(_HStruct);
-            
-    #         for element in range(len(self.dynParams['detunings'])):
-                
-    #             _Fullspace = [iden(self.Nrlevels)]*self.dynParams['Ensembles']['Atom_nr'];
-
-    #             _Fullspace_lst=[];
-    #             for atom_idx in range(self.dynParams['Ensembles']['Atom_nr']):
-    #                 _bufFullspace = _Fullspace.copy();
-    #                 _bufFullspace[atom_idx] = self.dynParams['detunings']['Detuning'+str(element)][1]*(self._ops[(self.dynParams['detunings']['Detuning'+str(element)][0])[0]*self.Nrlevels + (self.dynParams['detunings']['Detuning'+str(element)][0])[1]] );
-    #                 _Fullspace_lst.append(qt.tensor(_bufFullspace));
-
-    #             _HStruct = sum(_Fullspace_lst);
-    #             _HtDependency = self.dynParams['detunings']['Detuning'+str(element)][2];
-    
-    #             _HAQiPTpulses.append(_HtDependency);
-    #             _HQobjEVO.append([_HStruct, _HtDependency]);
-    #             self._lstHamiltonian.append(_HStruct);
-
-
-    #     self.tHamiltonian = qt.QobjEvo(_HQobjEVO, tlist=self.times);
-    #     self.Hpulses = _HAQiPTpulses;
+        if buildHamiltonian==True:
+            self.buildHamiltonian();
+        elif buildTHamiltonian==True:
+            self.buildTHamiltonian();
+        else:
+            print('Re-build Hamiltonian required.')
 
     def buildTHamiltonian(self):
         '''
@@ -536,29 +527,35 @@ class atomicModel:
 
             self.cops = _Fullspace_lst;
 
-    def buildObservables(self):
+    def buildObservables(self, observables=None):
         '''
             Build Observables
 
             Construct and assign Observable operators for the Quantum master equation solver of QuTiP stored in the mops attribute of the atomicModel.
         '''
-        if self.internalInteraction == None:
-            
-            self.mops = [self._ops[(self.Nrlevels+1)*i] for i in range(self.Nrlevels)];
-        
-        else:
-            
-            _bufbasis = ops_nlvl(self.Nrlevels**self.dynParams['Ensembles']['Atom_nr']);
-            _ops = [];
-            
-            _counter=0;
-            for i in range((self.Nrlevels**self.dynParams['Ensembles']['Atom_nr'])**2):
-                
-                if i%self.Nrlevels**self.dynParams['Ensembles']['Atom_nr'] == 0:
-                    _ops.append(_bufbasis[1][i+_counter%self.Nrlevels**self.dynParams['Ensembles']['Atom_nr']])
-                    _counter+=1;
+        if observables!=None:
+            self.mops = observables;
 
-            self.mops = _ops;
+        elif observables==[]:
+            self.mops = [];
+        else:
+            if self.internalInteraction == None:
+                
+                self.mops = [self._ops[(self.Nrlevels+1)*i] for i in range(self.Nrlevels)];
+            
+            else:
+                
+                _bufbasis = ops_nlvl(self.Nrlevels**self.dynParams['Ensembles']['Atom_nr']);
+                _ops = [];
+                
+                _counter=0;
+                for i in range((self.Nrlevels**self.dynParams['Ensembles']['Atom_nr'])**2):
+                    
+                    if i%self.Nrlevels**self.dynParams['Ensembles']['Atom_nr'] == 0:
+                        _ops.append(_bufbasis[1][i+_counter%self.Nrlevels**self.dynParams['Ensembles']['Atom_nr']])
+                        _counter+=1;
+
+                self.mops = _ops;
     
     def buildOnsiteInteraction(self, c6_val=1):
 
@@ -584,7 +581,7 @@ class atomicModel:
         '''
         return self.simRes
     
-    def showResults(self, resultseq=None, resultTitle=None, figure_size=(15,9), labels=None, report=False):
+    def showResults(self, plot_mode='matplotlib', resultseq=None, resultTitle=None, figure_size=(15,9), labels=None, figure=None, axis=None, legendON=True, report=False):
         '''
             Show Results of atomicModel
 
@@ -605,27 +602,85 @@ class atomicModel:
 
         '''
         
-        if resultseq==None:
-            resultseq = self.simRes;
-        
-        fig, axs = plt.subplots(figsize=figure_size);
+        if plot_mode=='plotly':
+            if figure_size==(10,6):
+                figure_size=(1650,500);
+            resultseq = self.simRes
+            if labels == None:
+                labels = [lst2str(i) for i in list(itertools.product(*[range(self.Nrlevels)]))]
+                self._basis = labels
 
-        if labels is None:
-            for i in range(len(resultseq.expect)):
-                axs.plot(self.times, resultseq.expect[i], label=i, alpha=0.5, linewidth=1.5);
+            if figure==None and axis==None:
+                fig = go.Figure()
+
+                for i in range(len(resultseq.expect)):
+                    if labels != None:
+                        fig.add_trace(go.Scatter(x=self.times, y=resultseq.expect[i], name=labels[i]))
+                    else:
+                        fig.add_trace(go.Scatter(x=self.times, y=resultseq.expect[i], name=str(i)))
+
+                if legendON:
+                    fig.update_layout(showlegend=True)
+                else:
+                    fig.update_layout(showlegend=False)
+
+                fig.update_layout(
+                    xaxis_title='Time',
+                    yaxis_title='Population',
+                    title=resultTitle if resultTitle != None else self._name,
+                    width=figure_size[0],
+                    height=figure_size[1]
+                )
+                return fig
+        elif plot_mode=='bloch-sphere':
+
+
+            self.buildObservables(observables=[qt.sigmax(), qt.sigmay(), qt.sigmaz()]);                                                                 #building Observables
+            self.simOpts.store_states=True;
+            self.playSim(psi0='state-vector');
+
+            self._blochsphere = qt.Bloch(fig=figure); 
+            self._blochsphere.vector_color = ['b']; #color of the initial state vector
+
+            # psi_0 = self.simRes.states[0]; #initial state
+            psi_0 = list(self.simRes_history[-1].values())[0].states[0]
+            self._blochsphere.add_states(psi_0);
+
+            self._blochsphere.point_color = ['r']; #color of the points of the dynamic evolution of the state vector
+            self._blochsphere.point_alpha = [0.1]
+
+            # psi_t = [self.simRes.expect[0], self.simRes.expect[1], self.simRes.expect[2]]; #points of the dynamic evolution of the state
+            
+            psi_t = [list(self.simRes_history[-1].values())[0].expect[i] for i in range(3)]; #points of the dynamic evolution of the state
+            self._blochsphere.add_points(psi_t)
+
+            self._blochsphere.render()
+
+            # return self._blochsphere
+
+
         else:
-            for i in range(len(resultseq.expect)):
-                axs.plot(self.times, resultseq.expect[i], label=labels[i], alpha=0.5, linewidth=1.5);
-        plt.legend();
-        plt.xlabel('Time', fontsize=18);
-        plt.ylabel('Population', fontsize=18);
+            if resultseq==None:
+                resultseq = self.simRes;
+            
+            fig, axs = plt.subplots(figsize=figure_size);
 
-        if resultTitle!=None:
-                plt.title(resultTitle);
-        else:
-            plt.title(self._name);
+            if labels is None:
+                for i in range(len(resultseq.expect)):
+                    axs.plot(self.times, resultseq.expect[i], label=i, alpha=0.5, linewidth=1.5);
+            else:
+                for i in range(len(resultseq.expect)):
+                    axs.plot(self.times, resultseq.expect[i], label=labels[i], alpha=0.5, linewidth=1.5);
+            plt.legend();
+            plt.xlabel('Time', fontsize=18);
+            plt.ylabel('Population', fontsize=18);
 
-        return fig, axs
+            if resultTitle!=None:
+                    plt.title(resultTitle);
+            else:
+                plt.title(self._name);
+
+            return fig, axs
     
     def modelMap(self, plotON=True, figure_size=(8,8)):
         '''
@@ -688,6 +743,14 @@ class atomicModel:
 #####################################################################################################
 #atomicQRegister AQiPT class
 #####################################################################################################
+
+def AM_superposition(state:str, Nrlevels:int):
+
+    qtotal=0; qidx=0;
+    for q in [qt.basis(Nrlevels, state) for state in bitstring2lst(state)]:
+        qtotal+=q; qidx+=1;
+    
+    return (1/np.sqrt(qidx))*qtotal;
 
 def append_to_list_if_not_exists(lst, arr):
     for l in lst:
@@ -1215,7 +1278,9 @@ class atomicQRegister:
                     self.simRes = qt.mesolve(self.tnHamiltonian, self.initnState, self.times, e_ops=self.nmops, options=self.simOpts);
                 else:
                     self.simRes = qt.mesolve(self.tnHamiltonian, self.initnState, self.times, c_ops=self.ncops, e_ops=self.nmops, options=self.simOpts);
-    
+        if solver=='QuantumOptics-QME':
+            pass
+
     def buildNBasis(self):
 
         _basis_set = list(itertools.product(*self.lstNrlevels));
@@ -1469,14 +1534,13 @@ class atomicQRegister:
                 _Vtot=None;
 
                 #for C6 interactions
+                for idx_basis in range(len(self._intbasis[0][0])):
+                    self._getC6Strength(c6_val=c6, idx=idx_basis%self.NrQReg);
+                    if isinstance(_Vtot, qt.Qobj):
+                        _Vtot += self.nC6Interaction*self._intbasis[0][0][idx_basis];
+                    else:
+                        _Vtot = self.nC6Interaction*self._intbasis[0][0][idx_basis];
                 try:
-                    for idx_basis in range(len(self._intbasis[0][0])):
-                        self._getC6Strength(c6_val=c6, idx=idx_basis%self.NrQReg);
-                        if isinstance(_Vtot, qt.Qobj):
-                            _Vtot += self.nC6Interaction*self._intbasis[0][0][idx_basis];
-                        else:
-                            _Vtot = self.nC6Interaction*self._intbasis[0][0][idx_basis];
-                    
                     _intbasis4C3 = [];
                     for ii in self._intbasis[0][1]:
                         append_to_list_if_not_exists(_intbasis4C3, ii+ ii.dag());
@@ -1491,8 +1555,7 @@ class atomicQRegister:
                         else:
                             _Vtot = self.nC3Interaction*_intbasis4C3[idx_basis];
                 except:
-                    print("No C6 Interaction")
-                    pass
+                    print('Passed C3 interaction. Not found.')
 
                 try:
                     self.tnHamiltonian.append(_Vtot); #add the interaction term as always ON Hamiltonian
@@ -1807,7 +1870,7 @@ def Scan(scan, params, times, Nrlevels, psi0, name, atomicModel=None, population
                     if AM==None:
                         scan_iResults.append(scan_i(idx_scan, idx1, idx_scan2, idx2, params, scanValues, times, Nrlevels, psi0, name, AM, population_idx));
                     else:
-                        scan_iResults.append(scan_i(idx_scan, dx1, idx_scan2, idx2, params, scanValues, times, Nrlevels, psi0, name, AM,  population_idx));
+                        scan_iResults.append(scan_i(idx_scan, idx1, idx_scan2, idx2, params, scanValues, times, Nrlevels, psi0, name, AM,  population_idx));
                 idx_scan2+=1;
 
                 scan_jResults.append(scan_iResults);
@@ -1818,177 +1881,3 @@ def Scan(scan, params, times, Nrlevels, psi0, name, atomicModel=None, population
         scan['scan-results'].append(scan_kResults);
         
     return AM, scan
-
-#####################################################################################################
-#optElement AQiPT class
-#####################################################################################################
-
-class optElement(object):
-    
-    def __init__(self, args):
-        self.args=args
-        self.type=None
-        self.name=None
-        self.label=None
-        
-    def get_matrix(cls):
-        return cls.transferMatrix
-    
-    def get_name(self):
-        return self.name
-    
-class medium(optElement):
-    
-    def __init__(self, args):
-        optElement.__init__(self, args)
-        self.type = 'Passive'
-        self.name = 'Medium'
-        self.label = args['label']
-        self.transferMatrix = np.array([[1 , args['distance']],
-                                       [0 , 1]])    
-
-class flatInterface(optElement):
-    
-    def __init__(self, args):
-        self.type = 'Passive'
-        self.name = 'Flat Interface'
-        self.label = args['label']
-        self.transferMatrix = np.array([[1 , 0],
-                                        [0 , args['n1']/args['n2']]])
-
-class curvedInterface(optElement):
-    
-    def __init__(self, args):
-        self.type = 'Passive'
-        self.name = 'Curved Interface'
-        self.label = args['label']
-        self.transferMatrix = np.array([[1 , 0],
-                                        [((args['n1']-args['n2'])/(args['curvature_radius']*args['n2'])) , args['n1']/args['n2']]])    
-
-class flatMirror(optElement):
-    
-    def __init__(self, args):
-        self.type = 'Passive'
-        self.name = 'Flat Mirror'
-        self.label = args['label']
-        self.transferMatrix = np.array([[1 , 0],
-                                        [0 , 1]])
-
-class curvedMirror(optElement):
-        
-    def __init__(self, args):
-        self.type = 'Passive'
-        self.name = 'Flat Interface'
-        self.label = args['label']
-        self.transferMatrix = np.array([[1 , 0],
-                                        [-1*(2/args['curvature_radius']) , args['n1']/args['n2']]])
-
-class thinLens(optElement):
-    
-    def __init__(self, args):
-        self.type = 'Passive'
-        self.name = 'Flat Interface'
-        self.label = args['label']
-        self.transferMatrix = np.array([[1 , 0],
-                                        [(-1/args['focal_lenght']) , 1]])
-
-class thickLens(optElement):
-        
-    def __init__(self, args):
-        A = np.array([[1 , 0],
-                  [((args['n1']-args['n2'])/(args['curvature_radius']*args['n2'])) , args['n1']/args['n2']]])
-        B = np.array([[1, args['thickness_center']], [0,1]])
-        
-        self.type = 'Passive'
-        self.name = 'Thick Lens'
-        self.label = args['label']
-        self.transferMatrix = np.dot(A,np.dot(B,A))        
-
-class prism(optElement):
-    
-    def __init__(self, args):
-        self.type = 'Passive'
-        self.name = 'Prism'
-        self.label = args['label']
-        self.transferMatrix = np.array([[args['beam_expansion'] , args['prism_path_length']/(args['n1']*args['beam_expansion'])],
-                                    [0 , 1/args['beam_expansion']]])
-
-class multiplePrism(optElement):
-    
-    def __init__(self, args):
-        self.type = 'Passive'
-        self.name = 'Prism'
-        self.label = args['label']
-        self.transferMatrix = np.array([[args['magnification'],args['total_opt_propagation']],
-                                        [0, 1/args['magnification']]])
-        
-class beam(object):
-    
-    def __init__(self, amplitude, frequency, polarization, direction, phase=0, aligned=True, tSampling=np.linspace(0,1,100)):
-        if aligned==True:
-            self.tSamp=tSampling;
-            self.amp=amplitude;
-            self.freq=frequency;
-            self.pol=polarization;
-            self.dir=direction;
-            self.ph=phase;
-            self._Efield=self.amp*np.cos(self.freq*self.tSamp + self.ph)*self.pol;
-            self._beamVector=[self._Efield, self.dir];
-            self.path=np.array([[1,0],[0,1]]);
-            self._elements=list();
-        else:
-            print('Spacial dependency of setup no supported yet. Sorry :(')
-    
-    @classmethod
-    def create(cls, amplitude, frequency, polarization, direction, phase=0, aligned=True, tSampling=np.linspace(0,1,100)):
-        return cls(amplitude, frequency, polarization, direction, phase=0, aligned=True, tSampling=np.linspace(0,1,100))
-        
-    def add2Path(self, optElmnt):
-        if isinstance(optElmnt, object):
-            self.path=np.dot(self.path,optElmnt.get_matrix())
-            self._elements.append(optElmnt)
-        if isinstance(optElmnt, list):
-            for element in optElmnt:
-                self.path=np.dot(self.path,element.get_matrix())
-            self._elements+=optElmnt
-    
-    def get_beamVector(self):
-        return self._beamVector
-    
-    def get_Efield(self):
-        return self._Efield
-    
-    def get_pathMatrix(self):
-        return self.path
-    
-    def get_elements(self):
-        return self._elements
-
-#####################################################################################################
-#OptSetup AQiPT class
-#####################################################################################################
-
-class OptSetup(object):
-    
-    def __init__(self):
-        self.name=None
-        self._beams=list()
-        self._elements=list()
-    
-    def add2Setup(self, newBeam):
-        self._beams.append(newBeam)
-        self._elements+= newBeam._elements
-    
-    def _addElements(self, elements):
-        if isinstance(elements, optElement):
-            self._elements.append(elements)
-        if isinstance(elements, list):
-            for element in elements:
-                if isinstance(element, optElement):
-                    self._elements.append(element)
-    
-    def getbeams(self):
-        return self._beams
-    
-#     def playStatic():    
-#     def playDynamic():
