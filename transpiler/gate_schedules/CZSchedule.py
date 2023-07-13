@@ -1,7 +1,7 @@
 from transpiler.aqipt_pulses import *
 from transpiler.rydberg_circuits import *
 from .GateSchedule import *
-from transpiler.gate_scheduler.RxSchedule import RxSchedule
+from transpiler.gate_schedules.RxSchedule import RxSchedule
 
 class CZSchedule(GateSchedule):
     

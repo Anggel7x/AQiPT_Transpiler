@@ -28,7 +28,11 @@ class UxySchedule(GateSchedule):
         else:
             raise ValueError(f"{self.shape} is not a valid shape.")
         
-        pulse_1 = ShapedPulse(t_start=self.t_start, area=self.theta/omega)
+        _theta = self.theta
+        while (_theta/omega < np.pi/8 and _theta != 0):
+            _theta += 2*np.pi
+        
+        pulse_1 = ShapedPulse(t_start=self.t_start, area=_theta/omega)
         
         pulse_t1 = SquarePulse(t_start=self.t_start, t_end=pulse_1.t_end)
         complx_pulse_1 = pulse_1.function*np.exp(-1j*self.phi*pulse_t1.function)
