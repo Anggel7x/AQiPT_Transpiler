@@ -35,7 +35,7 @@ class ShapedPulse():
             self.area = area
             self.args = None
             self.function = None
-
+    
     def info(self):
         return f'{self.type} ({self.name}) - Amp:{self.amp:0.5f}, Center: {self.t_o:0.2f}, Gate time: {self.tg:0.5f}'
             
@@ -49,14 +49,11 @@ class GaussianPulse(ShapedPulse):
                 tp_window: Optional[int] = PULSE_PARAMS.dyn_time ,
                 name: Optional[str] = None, 
                 color: Optional[str] = None, 
-                type: Optional[str] = None,
                 area: Optional[float] = None
         ):
         
-        super().__init__(t_o, t_start, t_end, amp, t_end - t_start, tp_window, name, color, type, area)
+        super().__init__(t_o, t_start, t_end, amp, 4*g_std, tp_window, name, color, area)
         self.type = "Gaussian Pulse"
-        self.g_center = t_o
-        self.g_Amp = amp
         self.g_std = g_std
         
         
@@ -76,23 +73,23 @@ class GaussianPulse(ShapedPulse):
         if self.t_start != None and self.t_end !=  None: # Primer modo
             self.width = (self.t_end - self.t_start)/2
             self.t_o = self.t_start + self.width
-            self.g_center = self.t_o
             self.g_std = self.width/4
-            self.area = self.g_std*pow(4*np.pi, 1/2)*np.abs(self.g_Amp)
+            self.area = self.g_std*pow(4*np.pi, 1/2)*np.abs(self.amp)
             
         elif self.area != None and self.t_start != None: # Segundo modo
-            self.g_std = (self.area/(pow(4*np.pi, 1/2)*np.abs(self.g_Amp)))
-            self.width = self.g_std*4
-          #  self._std_adjustment()
+            self.g_std = (self.area/(pow(4*np.pi, 1/2)*np.abs(self.amp)))
             self.width = self.g_std*4
             self.t_o = self.t_start + self.width
-            self.g_center = self.t_o
             self.t_end = self.t_start + 2*self.width
+            self.tg = self.t_end - self.t_start
+    
+    
         
+    
     def _function(self):
             
-        args_list = {'g_Amp': self.g_Amp,
-                    'g_center': self.g_center,
+        args_list = {'g_Amp': self.amp,
+                    'g_center': self.t_o,
                     'g_std': self.g_std,
                     'tp_window': self.tp_window,
                     'name': self.name,
@@ -144,7 +141,6 @@ class SquarePulse(ShapedPulse):
         
         # Area and starting setting
         elif self.area != None and self.t_start != None:
-            self.area = self.area
             self.width = 1/2*(self.area/(np.abs(self.amp)))
             self.t_o = self.t_start + self.width
             self.tg = self.area
