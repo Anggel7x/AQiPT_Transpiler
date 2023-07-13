@@ -4,10 +4,9 @@ from AQiPT.modules.control import AQiPTcontrol as control
 from typing import Optional, Any
 from math import pow
 
-
-T_MAX = 10
-ARGS = {'sampling':int(5e3), 'bitdepth':16, 'time_dyn': T_MAX}
-PULSE_PARAMS = aqipt.general_params(ARGS)
+from transpiler.config.core import backend
+pulse_config = backend.pulse_config
+PULSE_PARAMS = pulse_config.PULSE_PARAMS
 
 class ShapedPulse():
     def __init__(self,

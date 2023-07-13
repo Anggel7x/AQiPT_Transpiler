@@ -1,6 +1,6 @@
 from .transpilation_rules import *
 from .rydberg_circuits import RydbergQubitSchedule, RydbergRegisterSchedule
-from .gate_scheduler.UxySchedule import CERO_FUNCTION
+from .gate_schedules.UxySchedule import CERO_FUNCTION
 
 
 def extract_qc_data(qc):
@@ -35,6 +35,7 @@ def transpile(gates, transpilation_rules, num_qubits, **kwargs):
     circuit_schedule = circuit_schedule_init(num_qubits)
     for gate in gates:
         name, params, num_qubits, qubits = gate
+        if name == "barrier": continue 
         apply_rule = get_transpilation_rule(name, transpilation_rules)
         args = {
             'name' : name, 

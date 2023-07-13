@@ -5,10 +5,20 @@ from .aqipt_pulses import *
 from typing import Any, List, Dict, Optional
 from itertools import product
 
-RED_HUE = ['firebrick','lightcoral','coral','chocolate']
-BLUE_HUE = ['turquoise', 'paleturquoise','darkturquoise','skyblue']
-PURPLE_HUE = ['slateblue', 'plum','violet','mediumorchid']
-plt.style.use('dark_background')
+from transpiler.config.core import backend
+
+simulation_config = backend.simulation_config
+T_MAX = simulation_config.time_simulation
+
+pulse_config = backend.pulse_config
+PULSE_PARAMS = pulse_config.PULSE_PARAMS
+
+coupling_color = pulse_config.DEFAULT_COLOR['coupling']
+detuning_color = pulse_config.DEFAULT_COLOR['detuning']
+other_color = pulse_config.DEFAULT_COLOR['other']
+style = pulse_config.ploting_style
+
+plt.style.use(style)
 
 
 def merge_pulses(pulses :dict, name: str):
@@ -81,7 +91,7 @@ class RydbergQubitSchedule():
         schedule1[what] = val    
 
     def plot_couplings(self, xmin: float = 0, xmax: float =T_MAX, plot:bool=True, name:str='', 
-                        color = BLUE_HUE, phase=True, amp=True):
+                        color = coupling_color, phase=True, amp=True):
         
         times = self.times
         p_pulses = {}
@@ -161,7 +171,7 @@ class RydbergQubitSchedule():
             xmax: float = T_MAX, 
             plot: bool = True,
             name: str = '',
-            color = RED_HUE):
+            color = detuning_color):
 
             times = self.times
             p_pulses = {}
@@ -204,8 +214,8 @@ class RydbergQubitSchedule():
         xmin: float = 0, 
         xmax: float = T_MAX, 
         name='', 
-        color_coup = BLUE_HUE, 
-        color_det= RED_HUE):
+        color_coup = coupling_color, 
+        color_det= detuning_color):
 
         self.plot_couplings(xmin, xmax, name=name, color=color_coup)
         self.plot_detunings(xmin,xmax, name=name, color=color_det)
@@ -288,7 +298,7 @@ class RydbergQubit():
     def __str__(self):
         print('{self.name}')
     
-    def plot_results(self , color = PURPLE_HUE):
+    def plot_results(self , color = other_color):
         simRes = self.atom.getResult()
         
         states = simRes.expect
@@ -435,3 +445,6 @@ class RydbergQuantumRegister():
         fig.supxlabel('Time', fontsize=18)
         plt.show()
 
+    def show_bloch_sphere(self):
+        
+        pass

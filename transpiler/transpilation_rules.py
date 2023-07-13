@@ -1,10 +1,14 @@
 import numpy as np
-from .gate_scheduler.schedules import *
+from transpiler.gate_schedules.schedules import *
 
-freq = 1
-shape = "square"
-c6 = -2*np.pi*1000
-TIME_SLEEP = 0.1
+from transpiler.config.core import transpilation_config
+
+freq = transpilation_config.normal_freq
+shape = transpilation_config.shape
+TIME_SLEEP = transpilation_config.t_wait
+t_start = transpilation_config.t_start
+high_freq = transpilation_config.high_freq
+transpilation_rules = transpilation_config.transpilation_rules
 
 
 def get_transpilation_rule(name, transpilation_rules):
@@ -233,6 +237,8 @@ def cp_rule(name, params, num_qubits, qubits, circuit_schedule):
         raise ValueError(f"Number of qubits {num_qubits} != 2")
     
     phi11 = params[0]
+    c6 = - 2*np.pi*1520
+    t_2 =  phi11/(np.abs(c6)/np.sqrt(2)**6)
     ctrl, targt =  qubits[0], qubits[1]
         
     # Get the qubit list of schedules and end time
@@ -244,9 +250,8 @@ def cp_rule(name, params, num_qubits, qubits, circuit_schedule):
     target_t_end = target_info[1] 
     
     
-    t_start = max(control_t_end, target_t_end, TIME_SLEEP) # We must wait for both qubits to be relaxed
-    t2 = 0.2
-    CP = CphaseSchedule(t_start=t_start, t_2 = t2, freq= freq, shape=shape)
+    t_start = max(control_t_end, target_t_end, TIME_SLEEP) # We must wait for both qubits to be free
+    CP = CphaseSchedule(t_start=t_start, t_2 = t_2, freq=high_freq, shape=shape)
     
     circuit_schedule[str(ctrl)][0].append(CP.q_schedule[0])
     circuit_schedule[str(targt)][0].append(CP.q_schedule[1])
@@ -256,7 +261,7 @@ def cp_rule(name, params, num_qubits, qubits, circuit_schedule):
         
 def iswap_rule(name, params, num_qubits, qubits, circuit_schedule):
     
-    if name != "iswap":
+    if name != "swap" and name != "iswap":
         raise ValueError(f"Name {name} does not match for this rule")
     
     if num_qubits != 2:
@@ -274,8 +279,7 @@ def iswap_rule(name, params, num_qubits, qubits, circuit_schedule):
     
     
     t_start = max(control_t_end, target_t_end, TIME_SLEEP) # We must wait for both qubits to be relaxed
-    t2 = 3*np.pi / c6
-    XY = XYSchedule(t_start=t_start, t_2 = t2, freq= freq, shape=shape)
+    XY = XYSchedule(t_start=t_start, freq= freq, shape=shape)
     
     circuit_schedule[str(ctrl)][0].append(XY.q_schedule[0])
     circuit_schedule[str(targt)][0].append(XY.q_schedule[1])
@@ -283,7 +287,7 @@ def iswap_rule(name, params, num_qubits, qubits, circuit_schedule):
     circuit_schedule[str(ctrl)][1] = XY.t_end  + TIME_SLEEP
     circuit_schedule[str(targt)][1] = XY.t_end  + TIME_SLEEP
     
-transpilation_rules ={
+transpilation_rules = {
     'rx' : rx_rule,
     'ry' : ry_rule,
     'rz' : rz_rule,
@@ -293,5 +297,6 @@ transpilation_rules ={
     'h' : h_rule,
     'cx' : cx_rule,
     'cp' : cp_rule,
-    'iswap' : iswap_rule
+    'iswap' : iswap_rule,
+    'swap': iswap_rule
 }
