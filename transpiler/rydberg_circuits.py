@@ -214,27 +214,25 @@ class RydbergRegisterSchedule():
     
     def __init__(
         self,
-        coupling_pulses: List[RydbergQubitSchedule],
-        detuning_pulses: List[RydbergQubitSchedule] = [], 
+        schedules: List[RydbergQubitSchedule],
         times = PULSE_PARAMS.timebase()
     ):
         
-        self.coupling_pulses = coupling_pulses
-        self.detuning_pulses = detuning_pulses
+        self.schedules = schedules
         self.times = times
-        self.n_qubits = len(coupling_pulses)
+        self.n_qubits = len(schedules)
         
-    def plot_schedule(self, xmin=0, xmax=T_MAX, couplings=True, detunings=False, color_coup=BLUE_HUE, color_det=RED_HUE):
+    def plot_schedule(self, xmin=0, xmax=T_MAX, couplings=True, detunings=False, color_coup=coupling_color, color_det=detuning_color):
 
-        if couplings:
-            for i in range(len(self.coupling_pulses)):
-                schedule = self.coupling_pulses[i]
+        
+        for i in range(len(self.schedules)):
+            schedule = self.schedules[i]
+            
+            if couplings:
                 schedule.plot_couplings(xmin, xmax, name=f' {i}', color=color_coup)
                 
-        if detunings and self.detuning_pulses != []:
-            for i in range(len(self.detuning_pulses)):
-                schedule = self.detuning_pulses[i]
-                schedule.plot_couplings(xmin, xmax, name=f' {i}', color=color_coup)
+            if detunings:
+                schedule.plot_detunings(xmin, xmax, name=f' {i}', color=color_coup)
 
 class RydbergQubit():
 
@@ -272,7 +270,7 @@ class RydbergQubit():
                 'dissipators': dissipators_q,
                 'rydbergstates': rydbergstates_q}; 
 
-        pulsed_qubit = emulator.atomicModel(times, Nrlevels, psi0, sim_params_q, name=self.name)
+        pulsed_qubit = emulator.atomicModel(times, Nrlevels, psi0, sim_params_q, name=self.name, simOpt=qt.Options(nsteps=120000, rtol=1e-6, max_step=10e-6, store_states=True))
         pulsed_qubit.modelMap(plotON=False)
 
         pulsed_qubit.buildTHamiltonian()
@@ -334,7 +332,10 @@ class RydbergQuantumRegister():
 
         self.qubits = qubits
         self.layout = layout
-        self.init_state = str(0).zfill(len(qubits)) if init_state == None else init_state
+        if isinstance(init_state, str):
+            self.init_state = str(0).zfill(len(qubits)) if init_state == None else init_state
+        else:
+            self.init_state = init_state
         self.name = name
         self.connectivity = connectivity
         self.c6 = c6
@@ -367,10 +368,11 @@ class RydbergQuantumRegister():
             layout = self.layout
         )
 
+        self._schedule()
         atomic_register.buildTNHamiltonian(); 
         atomic_register.registerMap(plotON=False, figure_size=(3,3)); 
 
-        atomic_register.simOpts = qt.Options(nsteps=nsteps, rtol=rtol, max_step=max_steps)
+        atomic_register.simOpts = qt.Options(nsteps=nsteps, rtol=rtol, max_step=max_steps, store_states=True)
         return atomic_register
 
     def compile(self, nsteps=10e3, rtol=1e-6, max_steps = 10e-6):
@@ -390,25 +392,17 @@ class RydbergQuantumRegister():
         self.atomic_register = atomic_register
 
     def _schedule(self):
-        couplings = []
-        detunings = []
-
-        for qubit in self.qubits:
-
-            coupling = qubit.schedule.coupling_pulses
-            detuning = qubit.schedule.detuning_pulses
-
-            couplings.append(coupling)
-            detunings.append(detuning)
-
-        ryd_sche = RydbergRegisterSchedule(couplings, detunings)
+        qubits_sch = [qubit.schedule for qubit in self.qubits]
+            
+            
+        ryd_sche = RydbergRegisterSchedule(qubits_sch)
         self.schedule = ryd_sche
 
-    def plot_schedule(self, xmin=0, xmax=T_MAX, couplings=True, detunings=False, color_coup =BLUE_HUE, color_det=RED_HUE):
+    def plot_schedule(self, xmin=0, xmax=T_MAX, couplings=True, detunings=False, color_coup =coupling_color, color_det=detuning_color):
 
         self.schedule.plot_schedule(xmin, xmax, couplings, detunings, color_coup, color_det)
 
-    def plot_results(self , color = PURPLE_HUE):
+    def plot_results(self , color = other_color):
         simRes = self.atomic_register.getResult()
         
         states = simRes.expect
