@@ -1058,11 +1058,13 @@ class atomicQRegister:
         self.__HilbertSpaceSize = sum(self.lstNrlevels);
         self._HSlist = [];
 
-        self.initnState = None;
+        self.initnState = initnState;
         if initnState==None:
             self.lstinitState = [AM.initState for AM in self._AMs];
-        else:
+        elif isinstance(self.initnState, str):
             self.lstinitState = bitstring2lst(initnState);
+        else:
+            self.lstinitState = [initnState]
         
         self.dynParams = [AM.dynParams for AM in self._AMs];
         
