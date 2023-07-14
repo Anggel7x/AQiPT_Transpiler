@@ -1,5 +1,5 @@
-from transpiler.aqipt_pulses import *
-from transpiler.rydberg_circuits import *
+from transpiler.rydberg_blocks.shaped_pulses import *
+from transpiler.rydberg_blocks.rydberg_qubits import *
 
 def coupling_detuning_constructors(couplings: List, detunings : List, omega_coup = 20, omega_detu = 0) -> tuple():
     coupling1 = {}

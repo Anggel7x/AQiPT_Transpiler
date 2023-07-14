@@ -1,6 +1,7 @@
-from .transpilation_rules import *
-from .rydberg_circuits import RydbergQubitSchedule, RydbergRegisterSchedule
-from .gate_schedules.UxySchedule import CERO_FUNCTION
+from transpiler.transpilation_rules import *
+from transpiler.rydberg_blocks.rydberg_qubits import RydbergQubitSchedule, RydbergRegisterSchedule
+from transpiler.gate_schedules.UxySchedule import CERO_FUNCTION
+from transpiler.utils.transpiler_utils import *
 
 
 def extract_qc_data(qc):

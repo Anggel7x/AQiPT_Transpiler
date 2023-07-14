@@ -1,5 +1,5 @@
-from transpiler.aqipt_pulses import *
-from transpiler.rydberg_circuits import *
+from transpiler.rydberg_blocks.shaped_pulses import *
+from transpiler.rydberg_blocks.rydberg_qubits import *
 from .GateSchedule import *
 from transpiler.gate_schedules.UxySchedule import UxySchedule
 from transpiler.gate_schedules.RxSchedule import RxSchedule

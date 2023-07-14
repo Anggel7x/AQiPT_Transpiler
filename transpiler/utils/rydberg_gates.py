@@ -1,7 +1,7 @@
 import numpy as np
 from qiskit import *
-from qiskit.circuit import Gate, Qubit
-from qiskit import QuantumCircuit, transpile, assemble, Aer
+from qiskit.circuit import Gate
+from qiskit import QuantumCircuit
 from qiskit.quantum_info.operators import Operator
 from qiskit.circuit.parameterexpression import ParameterValueType
 from typing import List, Optional, Union

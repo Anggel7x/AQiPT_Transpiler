@@ -1,12 +1,10 @@
 import numpy as np
-import AQiPT.AQiPTcore as aqipt
 from AQiPT.modules.control import AQiPTcontrol as control
 from typing import Optional, Any
-from math import pow
 
 from transpiler.config.core import backend
 pulse_config = backend.pulse_config
-PULSE_PARAMS = pulse_config.PULSE_PARAMS
+PULSE_PARAMS = backend.simulation_config.PULSE_PARAMS
 
 class ShapedPulse():
     def __init__(self,
@@ -73,10 +71,10 @@ class GaussianPulse(ShapedPulse):
             self.width = (self.t_end - self.t_start)/2
             self.t_o = self.t_start + self.width
             self.g_std = self.width/4
-            self.area = self.g_std*pow(4*np.pi, 1/2)*np.abs(self.amp)
+            self.area = self.g_std*np.power(4*np.pi, 1/2)*np.abs(self.amp)
             
         elif self.area != None and self.t_start != None: # Segundo modo
-            self.g_std = (self.area/(pow(4*np.pi, 1/2)*np.abs(self.amp)))
+            self.g_std = (self.area/(np.power(4*np.pi, 1/2)*np.abs(self.amp)))
             self.width = self.g_std*4
             self.t_o = self.t_start + self.width
             self.t_end = self.t_start + 2*self.width
