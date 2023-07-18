@@ -3,6 +3,7 @@ from transpiler.rydberg_blocks.rydberg_qubits import *
 from .GateSchedule import *
 from transpiler.gate_schedules.UxySchedule import UxySchedule
 
+
 class CUxySchedule(GateSchedule):
     
     def __init__(self,
@@ -26,13 +27,15 @@ class CUxySchedule(GateSchedule):
                                             t_start=self.t_start, 
                                             freq=self.freq, 
                                             pair=self.pair[0],
-                                            shape=self.shape)
+                                            shape=self.shape,
+                                            backend=self.backend_config)
         control_schedule = UxySchedule(
                                         theta=0,
                                         t_start=self.t_start, 
                                         freq=self.freq, 
                                         pair=self.pair[0],
-                                        shape=self.shape
+                                        shape=self.shape,
+                                        backend=self.backend_config
                                     )
         
         self.t_end = target_schedule.t_end

@@ -8,15 +8,16 @@ class RzSchedule(UxySchedule):
                  theta: float = np.pi, 
                  t_start : float = 1, 
                  freq: float = 1, 
-                 shape: str = "square") -> None:
+                 shape: str = "square",
+                 **kwargs) -> None:
         
-        super().__init__(theta, 0, t_start, freq, shape)  
+        super().__init__(theta, 0, t_start, freq, shape, **kwargs)  
 
     def _schedule(self):
         
-        Ry = UxySchedule(np.pi/2, -np.pi/2, t_start=self.t_start, shape=self.shape)
-        Rx = UxySchedule(self.theta, 0, t_start=Ry.t_end, shape=self.shape)
-        R = UxySchedule(np.pi/2, np.pi/2, t_start=Rx.t_end, shape=self.shape)
+        Ry = UxySchedule(np.pi/2, -np.pi/2, t_start=self.t_start, shape=self.shape, backend=self.backend_config)
+        Rx = UxySchedule(self.theta, 0, t_start=Ry.t_end, shape=self.shape, backend=self.backend_config)
+        R = UxySchedule(np.pi/2, np.pi/2, t_start=Rx.t_end, shape=self.shape, backend=self.backend_config)
         
         R.q_schedule.add_function(Rx.q_schedule.coupling_pulses["Coupling0"][2], "Coupling0")
         R.q_schedule.add_function(Ry.q_schedule.coupling_pulses["Coupling0"][2], "Coupling0")

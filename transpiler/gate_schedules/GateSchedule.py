@@ -1,29 +1,7 @@
 from transpiler.rydberg_blocks.shaped_pulses import *
 from transpiler.rydberg_blocks.rydberg_qubits import *
+from transpiler.config.core import BackendConfig, backend
 
-def coupling_detuning_constructors(couplings: List, detunings : List, omega_coup = 20, omega_detu = 0) -> tuple():
-    coupling1 = {}
-    
-    if type(omega_coup) == float or  type(omega_coup) == int:
-    
-        for i, coupling in enumerate(couplings):
-            levels , coupling = coupling
-            coupling1['Coupling'+str(i)] = [levels, omega_coup, coupling]
-            
-    elif type(omega_coup) == list:
-        assert len(omega_coup) == len(couplings)
-        
-        for i, coupling in enumerate(couplings):
-            levels , coupling = coupling
-            coupling1['Coupling'+str(i)] = [levels, omega_coup[i], coupling]
-
-
-    detuning1 = {}
-    for i, detuning in enumerate(detunings):
-        levels , detuning = detuning
-        detuning1['Detuning'+str(i)] = [levels, omega_detu, detuning]
-        
-    return coupling1, detuning1
 
 class GateSchedule():
     
@@ -31,7 +9,8 @@ class GateSchedule():
                  t_start: float,
                  freq: float,
                  pair: list,
-                 shape: str
+                 shape: str,
+                 **kwargs
                 ) -> None:
         
         self.t_start = t_start
@@ -42,6 +21,16 @@ class GateSchedule():
         self.n_qubits = len(pair)
         self.omega = 2*np.pi*freq
         self.q_schedule = None
+        
+        if "backend" in kwargs.keys():
+            backend_config = kwargs["backend"]
+            assert isinstance(backend_config, BackendConfig)
+            
+            self.backend_config = backend_config
+        
+        else:
+            self.backend_config = backend
+            
         
     def __call__(self):
         return self.q_schedule   

@@ -11,9 +11,10 @@ class PCUxySchedule(GateSchedule):
                  t_start : float = 1, 
                  freq: float = 1, 
                  shape: str = "square",
-                 pair: list = [0,1]) -> None:
+                 pair: list = [0,1],
+                 **kwargs) -> None:
         
-        super().__init__(t_start, freq, pair, shape)
+        super().__init__(t_start, freq, pair, shape,**kwargs)
         
         self.theta = theta
         self.phi = phi
@@ -25,14 +26,16 @@ class PCUxySchedule(GateSchedule):
                                             phi=self.phi,
                                             t_start=self.t_start, 
                                             freq=self.freq, 
-                                            shape=self.shape)
+                                            shape=self.shape,
+                                            backend=self.backend_config)
         
         
         control_schedule = UxySchedule(theta=self.theta, 
                                             phi=self.phi,
                                             t_start=self.t_start, 
                                             freq=self.freq, 
-                                            shape=self.shape)
+                                            shape=self.shape, 
+                                            backend=self.backend_config)
         
         self.t_end = target_schedule.t_end
         self.q_schedule = (target_schedule, control_schedule)

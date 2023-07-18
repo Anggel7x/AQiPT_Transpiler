@@ -9,9 +9,10 @@ class CZSchedule(GateSchedule):
                  t_start : float = 1, 
                  freq: float = 1, 
                  pair: list = [[1,2], [1,2]],
-                 shape: str = "square") -> None:
+                 shape: str = "square",
+                 **kwargs) -> None:
         
-        super().__init__(t_start, freq, pair)
+        super().__init__(t_start, freq, pair, **kwargs)
         
         self.shape = shape
         
@@ -25,13 +26,13 @@ class CZSchedule(GateSchedule):
         c_pair, t_pair = self.pair[0], self.pair[1]
         
         # 1 -> r
-        rc1 = RxSchedule(theta=np.pi, t_start=t_start, freq=freq, shape=shape, pair=c_pair)
+        rc1 = RxSchedule(theta=np.pi, t_start=t_start, freq=freq, shape=shape, pair=c_pair, backend=self.backend_config)
 
         # Interacción durante t2
-        r2 = RxSchedule(theta=2*np.pi,t_start=rc1.t_end, freq=freq, shape=shape, pair=t_pair)
+        r2 = RxSchedule(theta=2*np.pi,t_start=rc1.t_end, freq=freq, shape=shape, pair=t_pair,backend=self.backend_config)
 
         # r -> 1
-        rc2 = RxSchedule(theta=np.pi, t_start=r2.t_end, freq=freq, shape=shape, pair=c_pair)
+        rc2 = RxSchedule(theta=np.pi, t_start=r2.t_end, freq=freq, shape=shape, pair=c_pair,backend=self.backend_config)
 
         rc1.q_schedule.add_function(rc2.q_schedule.coupling_pulses["Coupling0"][2], "Coupling0")
         

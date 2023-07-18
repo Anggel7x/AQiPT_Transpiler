@@ -9,3 +9,5 @@ notebooks/
 *.csv
 *.bmp
 *.md
+*.pickle
+*.rar

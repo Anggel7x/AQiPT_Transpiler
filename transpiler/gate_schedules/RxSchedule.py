@@ -10,12 +10,13 @@ class RxSchedule(UxySchedule):
                  t_start : float = 1, 
                  freq: float = 1, 
                  shape: str = "square",
-                 pair: list = [0,1]) -> None:
+                 pair: list = [0,1],
+                 **kwargs) -> None:
         
-        super().__init__(theta, 0, t_start, freq, shape, pair)  
+        super().__init__(theta, 0, t_start, freq, shape, pair, **kwargs)  
 
     def _schedule(self):
-        Rx = UxySchedule(self.theta, 0, self.t_start, self.freq, self.shape, self.pair)
+        Rx = UxySchedule(self.theta, 0, self.t_start, self.freq, self.shape, self.pair, backend=self.backend_config)
         self.t_end = Rx.t_end
         self.q_schedule = Rx.q_schedule
         return Rx

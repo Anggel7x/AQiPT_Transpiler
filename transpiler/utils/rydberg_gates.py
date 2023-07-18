@@ -19,7 +19,7 @@ class RydbergUxyGate(Gate):
         label: Optional[str] = None,
     ):
     
-        super().__init__('Uxy', 1, [theta, phi], label=label)
+        super().__init__('uxy', 1, [theta, phi], label=label)
     
     def _define(self):
         """
@@ -29,7 +29,7 @@ class RydbergUxyGate(Gate):
         
         t = self.params[0]
         p = -(np.pi/2 + self.params[1])
-        l = +p
+        l = -p
         
         qc.append(U3Gate(t, p, l), [0], [])
         self.definition = qc
@@ -47,7 +47,7 @@ class RydbergUxyGate(Gate):
         epp = np.exp(1j*phi)
         epm = np.exp(1j*(-phi))
         
-        return np.array(
+        return 1/np.sqrt(2)*-1j*np.array(
             [
                 [ cos,  -1j*sin*epp], 
                 [ -1j*sin*epm, cos ]
@@ -61,7 +61,7 @@ class RydbergHGate(Gate):
         Hereda todas las cualidades de la clase Gate de Qiskit
     '''
     def __init__(self, label: Optional[str] = None):
-        super().__init__('H ryd', 1, [], label=label)
+        super().__init__('h', 1, [], label=label)
         
     def _define(self):
         """
@@ -71,6 +71,19 @@ class RydbergHGate(Gate):
         qc.append(RydbergUxyGate(np.pi/2, -np.pi/2), [0])
         qc.append(RydbergUxyGate(np.pi, 0), [0])
         self.definition = qc
+        
+    def __array__(self, dtype=complex) -> np.array:
+        """
+            Definición matricial de la transformación como un numpy.array 
+        """
+        
+        return 1/np.sqrt(2)*-1j*np.array(
+            [
+                [ 1, 1], 
+                [-1, 1]
+            ],
+        dtype=dtype
+        )
 
 class RydbergRxGate(Gate):
     '''
@@ -82,7 +95,7 @@ class RydbergRxGate(Gate):
         theta: ParameterValueType,
         label: Optional[str] = None
     ):
-        super().__init__('Rx ryd$', 1, [theta], label=label)
+        super().__init__('rx', 1, [theta], label=label)
         
     def _define(self):
         """
@@ -102,7 +115,7 @@ class RydbergRyGate(Gate):
         theta: ParameterValueType,
         label: Optional[str] = None
     ):
-        super().__init__('Ry ryd', 1, [theta], label=label)
+        super().__init__('ry', 1, [theta], label=label)
     
     def _define(self):
         """
@@ -122,7 +135,7 @@ class RydbergRzGate(Gate):
         theta: ParameterValueType,
         label: Optional[str] = None
     ):
-        super().__init__('Rz ryd', 1, [theta], label=label)
+        super().__init__('rz', 1, [theta], label=label)
     
     def _define(self):
         """
@@ -146,7 +159,7 @@ class RydbergCUxyGate(Gate):
         label: Optional[str] = None,
     ):
     
-        super().__init__('CUxy',2, [theta, phi], label=label)
+        super().__init__('cuxy',2, [theta, phi], label=label)
     
     def _define(self):
         """
@@ -191,23 +204,20 @@ class RydbergCPhase(Gate):
     '''
     def __init__(
         self,
-        phi00: ParameterValueType,
-        phi01: ParameterValueType,
-        phi10: ParameterValueType,
         phi11: ParameterValueType,
         label: Optional[str] = None,
     ):
     
-        super().__init__('CPhase',2, [phi00, phi01, phi10, phi11], label=label)
+        super().__init__('cp',2, [phi11], label=label)
     
     def _define(self):
         '''
             Definición circuital de la transformación a base de un operador matricial.
         '''
-        phi00, phi01, phi10, phi11 = self.params
-        e00 = np.exp(1j*phi00)
-        e01 = np.exp(1j*phi01)
-        e10 = np.exp(1j*phi10)
+        phi11 = self.params
+        e00 = np.exp(1j*0)
+        e01 = np.exp(1j*np.pi)
+        e10 = np.exp(1j*np.pi)
         e11 = np.exp(1j*phi11)
         
         qc = RydbergQuantumCircuit(2, name=self.name)
@@ -227,20 +237,20 @@ class RydbergCPhase(Gate):
         '''
             Definición matricial de la transformación como un numpy.array
         '''
-        phi00, phi01, phi10, phi11 = self.params
+        phi11 = self.params
         
-        e00 = np.exp(1j*phi00)
-        e01 = np.exp(1j*phi01)
-        e10 = np.exp(1j*phi10)
+        e00 = np.exp(1j*0)
+        e01 = np.exp(1j*np.pi)
+        e10 = np.exp(1j*np.pi)
         e11 = np.exp(1j*phi11)
         
         return np.array(
-            [
-                [ e00, 0, 0, 0], 
-                [ 0, e01, 0, 0],
-                [ 0, 0, e10, 0],
-                [ 0, 0, 0, e11]
-            ],
+                    [
+                    [e00, 0, 0, 0],
+                    [0, e01, 0, 0],
+                    [0, 0, e10, 0],
+                    [0, 0, 0, e11],
+                   ],
         dtype=dtype
         )
     
@@ -249,14 +259,14 @@ class RydbergCXGate(Gate):
         Clase que contiene la transformación Control-X en átomos de Rydberg.
     '''
     def __init__(self, label: Optional[str] = None,):
-        super().__init__('CX',2, [], label=label)
+        super().__init__('cx',2, [], label=label)
     
     def _define(self):
         '''
             Definición de la transformación a base de un operador matricial
         '''
         phi = self.params
-        ep = np.exp(1j*phi)
+        ep = 1*np.exp(1j*phi)
         
         qc = RydbergQuantumCircuit(2, name=self.name)
         
@@ -271,27 +281,12 @@ class RydbergCXGate(Gate):
         qc.unitary(cp, [0,1])
         self.definition = qc
         
-class RydbergCPGate(Gate):
-    '''
-        Clase que contiene la transformación Control-Phase(phi) en átomos de Rydberg.
-    '''
-    def __init__(self, phi: ParameterValueType ,label: Optional[str] = None,):
-        super().__init__('CP',2, [phi], label=label)
-    
-    def _define(self):
-        '''
-            Definición circuital a base de CPhase en átomos de Rydberg.
-        '''
-        qc = RydbergQuantumCircuit(2, name=self.name)
-        qc.append(RydbergCPhase(0,0,0,self.params[0]), [0,1], [])
-        self.define = qc
-        
 class RydbergSwapGate(Gate):
     '''
         Clase que contiene la transformación Swap en átomos de Rydberg
     '''
     def __init__(self, label: Optional[str] = None,):
-        super().__init__('Swap',2, [], label=label)
+        super().__init__('swap',2, [], label=label)
     
     def _define(self):
         '''
@@ -302,8 +297,8 @@ class RydbergSwapGate(Gate):
         cp = Operator(np.array(
                     [
                     [1, 0, 0, 0],
-                    [0, 0, 1, 0],
-                    [0, 1, 0, 0],
+                    [0, 0, 1j, 0],
+                    [0, 1j, 0, 0],
                     [0, 0, 0, 1],
                    ])
                   )
@@ -362,15 +357,12 @@ class RydbergQuantumCircuit(QuantumCircuit):
         """
         return self.append(RydbergCUxyGate(theta, phi), [control_qubit, target_qubit])
     
-    def cphase(self, phi00: float, phi01: float, phi10: float, phi11:float, qubit1:Union[int, List[int]], qubit2: Union[int, List[int]]):
+    def cp(self, phi11:float, qubit1:Union[int, List[int]], qubit2: Union[int, List[int]]):
         """
             Método que aplica la transformación CPhase(phi00, phi01, phi10, phi11) entre 
             'qubit1' y 'qubit2'.
 
             Args:
-                phi00 (float): Ángulo de rotación phi00
-                phi01 (float): Ángulo de rotación phi01
-                phi10 (float): Ángulo de rotación phi10
                 phi11 (float): Ángulo de rotación phi11
                 qubit1 (Qubit [int]): Qubit 1
                 qubit2 (Qubit [int]): Qubit 2
@@ -380,11 +372,11 @@ class RydbergQuantumCircuit(QuantumCircuit):
                 aplicada sobre 'qubit1' y 'qubit2'.
 
         """
-        return self.append(RydbergCPhase(phi00, phi01, phi10,phi11), [qubit1, qubit2])
+        return self.append(RydbergCPhase(phi11), [qubit1, qubit2])
     
     """Compuertas comunes a base de las basicas de Átomos de Rydberg"""
 
-    def ryd_h(self, qubit: Union[int, List[int]]):
+    def h(self, qubit: Union[int, List[int]]):
         """
             Método que aplica la transformación Hadamard sobre 'qubit'
 
@@ -398,7 +390,7 @@ class RydbergQuantumCircuit(QuantumCircuit):
         """
         return self.append(RydbergHGate(), [qubit])
     
-    def ryd_rx(self, theta: float, qubit: Union[int, List[int]]):
+    def rx(self, theta: float, qubit: Union[int, List[int]]):
         """
             Método que aplica la transformación Rotación en X sobre 'qubit'
 
@@ -413,7 +405,7 @@ class RydbergQuantumCircuit(QuantumCircuit):
         """
         return self.append(RydbergRxGate(theta), [qubit])
     
-    def ryd_ry(self, theta: float, qubit: Union[int, List[int]]):
+    def ry(self, theta: float, qubit: Union[int, List[int]]):
         """
             Método que aplica la transformación Rotación en Y sobre 'qubit'
 
@@ -428,7 +420,7 @@ class RydbergQuantumCircuit(QuantumCircuit):
         """
         return self.append(RydbergRyGate(theta), [qubit])
     
-    def ryd_rz(self, theta: float, qubit: Union[int, List[int]]):
+    def rz(self, theta: float, qubit: Union[int, List[int]]):
         """
             Método que aplica la transformación Rotación en Z sobre 'qubit'
 
@@ -443,7 +435,7 @@ class RydbergQuantumCircuit(QuantumCircuit):
         """
         return self.append(RydbergRzGate(theta), [qubit])
     
-    def ryd_cx(self, ctrl_qubit: int, target_qubit: Union[int, List[int]]):
+    def cx(self, ctrl_qubit: int, target_qubit: Union[int, List[int]]):
         """
             Método que aplica la transformación Control-X o CNOT sobre 'control_qubit' y
             'target_qubit'
@@ -458,23 +450,7 @@ class RydbergQuantumCircuit(QuantumCircuit):
         """
         self.append(RydbergCUxyGate(np.pi,0), [ctrl_qubit, target_qubit])
     
-    def ryd_cp(self, phi: float, ctrl_qubit: int, target_qubit: Union[int, List[int]]):
-        """
-            Método que aplica la transformación Control-P o CP sobre 'control_qubit' y
-            'target_qubit'
-
-            Args:
-                phi (float): Ángulo de rotación
-                control_qubit (Qubit [int]): Qubit de control
-                target_qubit (Qubit [int]): Qubit objetivo
-
-            Returns:
-                RydbergQuantumCircuit: Circuito de Rydberg con Control-P(phi) aplicada sobre
-                'control_qubit' y 'target_qubit'
-        """
-        self.append(RydbergCPGate(phi), [ctrl_qubit, target_qubit])
-    
-    def ryd_swap(self, qubit1: int, qubit2: int):
+    def iswap(self, qubit1: int, qubit2: int):
         """
             Método que aplica la transformación Swap entre 'qubit1' y 'qubit2'
 
@@ -487,16 +463,19 @@ class RydbergQuantumCircuit(QuantumCircuit):
                 'qubit1' y 'qubit2'
         """
         self.append(RydbergSwapGate(), [qubit1, qubit2])
-        
+
+    def swap(self, qubit1: int, qubit2: int):
+        self.iswap(qubit1, qubit2)
+    
     """QFT Circuit as Gate"""
     
     def ryd_qft(
         self, 
-        num_qubits: Optional[int] = None,
-        approximation_degree: Optional[int] =0, 
-        do_swaps: Optional[bool] =True, 
-        inverse: Optional[bool] =False, 
-        insert_barriers: Optional[bool] =True, 
+        num_qubits: Optional[int]= None,
+        approximation_degree: Optional[int]= 0, 
+        do_swaps: Optional[bool]= True, 
+        inverse: Optional[bool]= False, 
+        insert_barriers: Optional[bool]= True, 
         name='qft',
     ):
         """
@@ -522,18 +501,18 @@ class RydbergQuantumCircuit(QuantumCircuit):
         circuit = RydbergQuantumCircuit(*self.qregs, name=name)
         
         for j in reversed(range(num_qubits)):
-            circuit.ryd_h(j)
+            circuit.h(j)
             num_entanglements = max(0, j - max(0, approximation_degree - (num_qubits - j - 1)))
             for k in reversed(range(j - num_entanglements, j)):
                 lam = np.pi * (2.0 ** (k - j))
-                circuit.cphase(0,0,0, lam, j, k)
+                circuit.cp(lam, j, k)
 
             if insert_barriers:
                 circuit.barrier()
 
         if do_swaps:
             for i in range(num_qubits // 2):
-                circuit.ryd_swap(i, num_qubits - i - 1)
+                circuit.swap(i, num_qubits - i - 1)
 
         if inverse:
             circuit = circuit.inverse()

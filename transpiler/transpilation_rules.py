@@ -1,13 +1,8 @@
 import numpy as np
+
 from transpiler.gate_schedules.schedules import *
+from transpiler.config.core import BackendConfig, backend
 
-from transpiler.config.core import transpilation_config
-
-freq = transpilation_config.normal_freq
-shape = transpilation_config.shape
-TIME_SLEEP = transpilation_config.t_wait
-t_start = transpilation_config.t_start
-high_freq = transpilation_config.high_freq
 
 """ (name)_rule(args):
 
@@ -25,8 +20,42 @@ high_freq = transpilation_config.high_freq
         ValueError: If the number of qubits does not match.
 """
 
-
-def rx_rule(name, params, num_qubits, qubits, circuit_schedule):
+def transpilation_rule(func):
+    def extract_backend(*args, **kwargs):
+        
+        if "backend" in kwargs.keys():
+            backend_config = kwargs["backend"]
+            assert isinstance(backend_config, BackendConfig)
+            
+            backend_config = backend_config
+        
+        else:
+            backend_config = backend
+            
+        transpiler_config = backend_config.transpiler_config
+        t_wait = transpiler_config.t_wait
+        freq = transpiler_config.normal_frequency
+        shape = transpiler_config.shape
+        
+        atomic_config = backend.atomic_config
+        c6 = atomic_config.c6_constant
+        R = atomic_config.R
+        
+        func(t_wait = t_wait,
+             freq=freq,
+             shape=shape,
+             c6=c6,
+             R=R,
+             *args, **kwargs)
+        
+    return extract_backend
+    
+@transpilation_rule
+def rx_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+    
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
     
     if name != "rx":
         raise ValueError(f"Name {name} does not match for this rule")
@@ -39,16 +68,21 @@ def rx_rule(name, params, num_qubits, qubits, circuit_schedule):
         
     # Get the qubit list of schedules and end time
     qubit_info = circuit_schedule[str(qubit)]
-    qubit_t_end = max(qubit_info[1], TIME_SLEEP)
+    qubit_t_end = max(qubit_info[1], t_wait)
     
     # Construct the gate schedule
-    Rx = RxSchedule(theta = theta, t_start=qubit_t_end, freq=freq, shape = shape)
+    Rx = RxSchedule(theta = theta, t_start=qubit_t_end, freq=freq, shape = shape , backend=kwargs["backend"])
     
     # Update the circuit schedule
     qubit_info[0].append(Rx)
-    qubit_info[1] = Rx.t_end + TIME_SLEEP
+    qubit_info[1] = Rx.t_end + t_wait
 
-def ry_rule(name, params, num_qubits, qubits, circuit_schedule):
+@transpilation_rule
+def ry_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+    
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
     
     if name != "ry":
         raise ValueError(f"Name {name} does not match for this rule")
@@ -61,16 +95,22 @@ def ry_rule(name, params, num_qubits, qubits, circuit_schedule):
         
     # Get the qubit list of schedules and end time
     qubit_info = circuit_schedule[str(qubit)]
-    qubit_t_end = max(qubit_info[1], TIME_SLEEP)
+    qubit_t_end = max(qubit_info[1], t_wait)
     
     # Construct the gate schedule
-    Ry = RySchedule(theta = theta, t_start=qubit_t_end, freq=freq, shape = shape)
+    Ry = RySchedule(theta = theta, t_start=qubit_t_end, freq=freq, shape = shape , backend=kwargs["backend"])
+    
     
     # Update the circuit schedule
     qubit_info[0].append(Ry)
-    qubit_info[1] = Ry.t_end + TIME_SLEEP
+    qubit_info[1] = Ry.t_end + t_wait
+ 
+@transpilation_rule   
+def rz_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     
-def rz_rule(name, params, num_qubits, qubits, circuit_schedule):
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
     
     if name != "rz":
         raise ValueError(f"Name {name} does not match for this rule")
@@ -83,17 +123,22 @@ def rz_rule(name, params, num_qubits, qubits, circuit_schedule):
         
     # Get the qubit list of schedules and end time
     qubit_info = circuit_schedule[str(qubit)]
-    qubit_t_end = max(qubit_info[1], TIME_SLEEP)
+    qubit_t_end = max(qubit_info[1], t_wait)
     
     # Construct the gate schedule
-    Rz = RzSchedule(theta = theta, t_start=qubit_t_end, freq=freq, shape = shape)
+    Rz = RzSchedule(theta = theta, t_start=qubit_t_end, freq=freq, shape = shape , backend=kwargs["backend"])
     
     # Update the circuit schedule
     qubit_info[0].append(Rz)
-    qubit_info[1] = Rz.t_end + TIME_SLEEP
+    qubit_info[1] = Rz.t_end + t_wait
 
-def x_rule(name, params, num_qubits, qubits, circuit_schedule):
+@transpilation_rule
+def x_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
+
     if name != "x":
         raise ValueError(f"Name {name} does not match for this rule")
     
@@ -104,16 +149,21 @@ def x_rule(name, params, num_qubits, qubits, circuit_schedule):
         
     # Get the qubit list of schedules and end time
     qubit_info = circuit_schedule[str(qubit)]
-    qubit_t_end = max(qubit_info[1], TIME_SLEEP)
+    qubit_t_end = max(qubit_info[1], t_wait)
     
     # Construct the gate schedule
-    Rx = RxSchedule(theta = np.pi, t_start=qubit_t_end, freq=freq, shape = shape)
+    Rx = RxSchedule(theta = np.pi, t_start=qubit_t_end, freq=freq, shape = shape , backend=kwargs["backend"])
     
     # Update the circuit schedule
     qubit_info[0].append(Rx)
-    qubit_info[1] = Rx.t_end + TIME_SLEEP
+    qubit_info[1] = Rx.t_end + t_wait
+
+@transpilation_rule 
+def y_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     
-def y_rule(name, params, num_qubits, qubits, circuit_schedule):
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
     
     if name != "y":
         raise ValueError(f"Name {name} does not match for this rule")
@@ -126,16 +176,21 @@ def y_rule(name, params, num_qubits, qubits, circuit_schedule):
     # Get the qubit list of schedules and end time
     qubit_info = circuit_schedule[str(qubit)]
     qubit_schedule = qubit_info[0]
-    qubit_t_end = max(qubit_info[1], TIME_SLEEP)
+    qubit_t_end = max(qubit_info[1], t_wait)
     
     # Construct the gate schedule
-    Ry = RySchedule(theta = np.pi, t_start=qubit_t_end, freq=freq, shape = shape)
+    Ry = RySchedule(theta = np.pi, t_start=qubit_t_end, freq=freq, shape = shape , backend=kwargs["backend"])
     
     # Update the circuit schedule
     qubit_info[0].append(Ry)
-    qubit_info[1] = Ry.t_end + TIME_SLEEP
+    qubit_info[1] = Ry.t_end + t_wait
+
+@transpilation_rule 
+def z_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     
-def z_rule(name, params, num_qubits, qubits, circuit_schedule):
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
     
     if name != "z":
         raise ValueError(f"Name {name} does not match for this rule")
@@ -147,16 +202,21 @@ def z_rule(name, params, num_qubits, qubits, circuit_schedule):
         
     # Get the qubit list of schedules and end time
     qubit_info = circuit_schedule[str(qubit)]
-    qubit_t_end = max(qubit_info[1], TIME_SLEEP)
+    qubit_t_end = max(qubit_info[1])
     
     # Construct the gate schedule
-    Rz = RzSchedule(theta = np.pi, t_start=qubit_t_end, freq=freq, shape = shape)
+    Rz = RzSchedule(theta = np.pi, t_start=qubit_t_end, freq=freq, shape = shape , backend=kwargs["backend"])
     
     # Update the circuit schedule
     qubit_info[0].append(Rz)
-    qubit_info[1] = Rz.t_end + TIME_SLEEP
+    qubit_info[1] = Rz.t_end + t_wait
 
-def h_rule(name, params, num_qubits, qubits, circuit_schedule):
+@transpilation_rule
+def h_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+    
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
     
     if name != "h":
         raise ValueError(f"Name {name} does not match for this rule")
@@ -168,17 +228,22 @@ def h_rule(name, params, num_qubits, qubits, circuit_schedule):
         
     # Get the qubit list of schedules and end time
     qubit_info = circuit_schedule[str(qubit)]
-    qubit_t_end = max(qubit_info[1], TIME_SLEEP)
+    qubit_t_end = max(qubit_info[1], t_wait)
     
-    Uxy1 = UxySchedule(theta=np.pi/2, phi= -np.pi/2, t_start= qubit_t_end, freq=freq, shape=shape)
-    Uxy2 = UxySchedule(theta=np.pi, t_start=Uxy1.t_end, freq=freq, shape=shape)
+    Uxy1 = UxySchedule(theta=np.pi/2, phi= -np.pi/2, t_start= qubit_t_end, freq=freq, shape = shape , backend=kwargs["backend"])
+    Uxy2 = UxySchedule(theta=np.pi, t_start=Uxy1.t_end, freq=freq, shape = shape , backend=kwargs["backend"])
 
     # Update the circuit schedule
     qubit_info[0].append(Uxy1)
     qubit_info[0].append(Uxy2)
-    qubit_info[1] = Uxy2.t_end + TIME_SLEEP
+    qubit_info[1] = Uxy2.t_end + t_wait
+
+@transpilation_rule 
+def cx_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     
-def cx_rule(name, params, num_qubits, qubits, circuit_schedule):
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
     
     if name != "cx":
         raise ValueError(f"Name {name} does not match for this rule")
@@ -197,16 +262,21 @@ def cx_rule(name, params, num_qubits, qubits, circuit_schedule):
     target_t_end = target_info[1] 
     
     
-    t_start = max(control_t_end, target_t_end, TIME_SLEEP) # We must wait for both qubits to be relaxed
-    CUxy = CUxySchedule(t_start=t_start, freq= freq, shape=shape, pair=[[1,2],[1,2]])
+    t_start = max(control_t_end, target_t_end, t_wait) # We must wait for both qubits to be relaxed
+    CUxy = CUxySchedule(t_start=t_start, pair=[[1,3],[1,3]], freq=freq, shape = shape , backend=kwargs["backend"])
     
     circuit_schedule[str(ctrl)][0].append(CUxy.q_schedule[0])
     circuit_schedule[str(targt)][0].append(CUxy.q_schedule[1])
 
-    circuit_schedule[str(ctrl)][1] = CUxy.t_end  + TIME_SLEEP
-    circuit_schedule[str(targt)][1] = CUxy.t_end  + TIME_SLEEP
+    circuit_schedule[str(ctrl)][1] = CUxy.t_end  + t_wait
+    circuit_schedule[str(targt)][1] = CUxy.t_end  + t_wait
+
+@transpilation_rule 
+def cp_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     
-def cp_rule(name, params, num_qubits, qubits, circuit_schedule):
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
     
     if name != "cp":
         raise ValueError(f"Name {name} does not match for this rule")
@@ -215,10 +285,8 @@ def cp_rule(name, params, num_qubits, qubits, circuit_schedule):
         raise ValueError(f"Number of qubits {num_qubits} != 2")
     
     phi11 = params[0]
-    c6 = - 2*np.pi*1520
-    t_2 =  phi11/(np.abs(c6)/np.sqrt(2)**6)
     ctrl, targt =  qubits[0], qubits[1]
-        
+    
     # Get the qubit list of schedules and end time
     control_info = circuit_schedule[str(ctrl)]
     control_t_end = control_info[1]
@@ -228,17 +296,22 @@ def cp_rule(name, params, num_qubits, qubits, circuit_schedule):
     target_t_end = target_info[1] 
     
     
-    t_start = max(control_t_end, target_t_end, TIME_SLEEP) # We must wait for both qubits to be free
-    CP = CphaseSchedule(t_start=t_start, t_2 = t_2, freq=high_freq, shape=shape)
+    t_start = max(control_t_end, target_t_end, t_wait) # We must wait for both qubits to be free
+    CP = CphaseSchedule(t_start=t_start, phi11=phi11, freq=freq, shape = shape , backend=kwargs["backend"])
     
     circuit_schedule[str(ctrl)][0].append(CP.q_schedule[0])
     circuit_schedule[str(targt)][0].append(CP.q_schedule[1])
 
-    circuit_schedule[str(ctrl)][1] = CP.t_end  + TIME_SLEEP
-    circuit_schedule[str(targt)][1] = CP.t_end  + TIME_SLEEP
-        
-def iswap_rule(name, params, num_qubits, qubits, circuit_schedule):
+    circuit_schedule[str(ctrl)][1] = CP.t_end  + t_wait
+    circuit_schedule[str(targt)][1] = CP.t_end  + t_wait
+
+@transpilation_rule      
+def iswap_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
+  
     if name != "swap" and name != "iswap":
         raise ValueError(f"Name {name} does not match for this rule")
     
@@ -256,14 +329,15 @@ def iswap_rule(name, params, num_qubits, qubits, circuit_schedule):
     target_t_end = target_info[1]
     
     
-    t_start = max(control_t_end, target_t_end, TIME_SLEEP) # We must wait for both qubits to be relaxed
-    XY = XYSchedule(t_start=t_start, freq= freq, shape=shape)
+    t_start = max(control_t_end, target_t_end, t_wait) # We must wait for both qubits to be relaxed
+    XY = XYSchedule(t_start=t_start, freq=freq, shape = shape , backend=kwargs["backend"])
+    
     
     circuit_schedule[str(ctrl)][0].append(XY.q_schedule[0])
     circuit_schedule[str(targt)][0].append(XY.q_schedule[1])
 
-    circuit_schedule[str(ctrl)][1] = XY.t_end  + TIME_SLEEP
-    circuit_schedule[str(targt)][1] = XY.t_end  + TIME_SLEEP
+    circuit_schedule[str(ctrl)][1] = XY.t_end  + t_wait
+    circuit_schedule[str(targt)][1] = XY.t_end  + t_wait
     
 transpilation_rules = {
     'rx' : rx_rule,
