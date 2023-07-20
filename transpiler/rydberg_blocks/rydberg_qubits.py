@@ -5,7 +5,7 @@ from .shaped_pulses import *
 from typing import Any, List, Dict, Optional
 from itertools import product
 
-from transpiler.config.core import BackendConfig, backend
+from transpiler.config.core import BackendConfig, default_backend
 from transpiler.rydberg_blocks.rydberg_schedules import RydbergQubitSchedule, RydbergRegisterSchedule
 
 
@@ -35,7 +35,7 @@ class RydbergQubit():
             self.backend_config = backend_config
         
         else:
-            self.backend_config = backend
+            self.backend_config = default_backend
 
     def compile(self):
         Nrlevels = self.nr_levels
@@ -60,7 +60,7 @@ class RydbergQubit():
         pulsed_qubit.buildTHamiltonian()
         pulsed_qubit.buildHamiltonian()
         
-        pulsed_qubit.buildLindbladians()
+      #  pulsed_qubit.buildLindbladians()
         
         pulsed_qubit.buildObservables()
         self.atom = pulsed_qubit
@@ -137,11 +137,9 @@ class RydbergQuantumRegister():
         if "backend" in kwargs.keys():
             backend_config = kwargs["backend"]
             assert isinstance(backend_config, BackendConfig)
-            
-            self.backend_config = backend_config
-        
+            self.backend_config = backend_config        
         else:
-            self.backend_config = backend
+            self.backend_config = default_backend
         
         
         simulation_config = self.backend_config.simulation_config
@@ -180,17 +178,20 @@ class RydbergQuantumRegister():
         )
 
         self._schedule()
+        atomic_register.buildNinitState()
+        
         atomic_register.buildTNHamiltonian(); 
+       
         atomic_register.registerMap(plotON=False, figure_size=(3,3)); 
 
         atomic_register.simOpts = qt.Options(nsteps=nsteps, rtol=rtol, max_step=max_steps, store_states=True)
         atomic_register.compile()
         atomic_register.buildInteractions(c6=self.c6, c3=self.c3); 
         
-        atomic_register.buildNLindbladians()
+        #atomic_register.buildNLindbladians()
         
         atomic_register.buildNObservables()
-        atomic_register.buildNinitState()
+        
         
         self.atomic_register = atomic_register
 

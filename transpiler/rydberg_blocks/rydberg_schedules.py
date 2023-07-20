@@ -4,7 +4,7 @@ from transpiler.rydberg_blocks.shaped_pulses import *
 from typing import Any, List
 from transpiler.utils.schedules_utils import *
 
-from transpiler.config.core import backend, BackendConfig
+from transpiler.config.core import BackendConfig, default_backend
 
 plt.style.use("dark_background")
 
@@ -29,7 +29,7 @@ class RydbergQubitSchedule():
             self.backend_config = backend_config
         
         else:
-            self.backend_config = backend
+            self.backend_config = default_backend
         
         simulation_config = self.backend_config.simulation_config
         SAMPLING = simulation_config.sampling
@@ -208,7 +208,7 @@ class RydbergRegisterSchedule():
             self.backend_config = backend_config
         
         else:
-            self.backend_config = backend
+            self.backend_config = default_backend
             
         simulation_config = self.backend_config.simulation_config
         SAMPLING = simulation_config.sampling

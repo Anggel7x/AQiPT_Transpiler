@@ -6,7 +6,7 @@ import numpy as np
 import AQiPT.AQiPTcore as aqipt
 
 class SimulationConfig(BaseSettings):
-    time_simulation: float = 0.4
+    time_simulation: float = 5
     sampling: int = int(1e3)
     bitdepth: int = 16
     ARGS: Dict = {'sampling': sampling,
@@ -23,7 +23,7 @@ class PulseConfig(BaseSettings):
 
 
 class AtomicConfig(BaseSettings):
-    nr_levels: 4
+    nr_levels: int =  4
     rydberg_states: List[int] = [2,3]
     l_values: List[int] = [1,2]
     possible_transitions: Any = "All"
@@ -47,5 +47,5 @@ class BackendConfig(BaseSettings):
     transpiler_config: TranspilerConfig = TranspilerConfig()
 
     
-backend = BackendConfig()
+default_backend = BackendConfig()
     

@@ -1,7 +1,7 @@
 import numpy as np
 
 from transpiler.gate_schedules.schedules import *
-from transpiler.config.core import BackendConfig, backend
+from transpiler.config.core import BackendConfig, default_backend
 
 
 """ (name)_rule(args):
@@ -30,14 +30,14 @@ def transpilation_rule(func):
             backend_config = backend_config
         
         else:
-            backend_config = backend
+            backend_config = default_backend
             
         transpiler_config = backend_config.transpiler_config
         t_wait = transpiler_config.t_wait
         freq = transpiler_config.normal_frequency
         shape = transpiler_config.shape
         
-        atomic_config = backend.atomic_config
+        atomic_config = backend_config.atomic_config
         c6 = atomic_config.c6_constant
         R = atomic_config.R
         

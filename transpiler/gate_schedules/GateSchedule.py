@@ -1,6 +1,7 @@
 from transpiler.rydberg_blocks.shaped_pulses import *
 from transpiler.rydberg_blocks.rydberg_qubits import *
-from transpiler.config.core import BackendConfig, backend
+from transpiler.config.core import default_backend
+default_backend
 
 
 class GateSchedule():
@@ -29,8 +30,8 @@ class GateSchedule():
             self.backend_config = backend_config
         
         else:
-            self.backend_config = backend
-            
+            self.backend_config = default_backend
+                        
         
     def __call__(self):
         return self.q_schedule   

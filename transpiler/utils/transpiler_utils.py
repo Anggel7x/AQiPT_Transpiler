@@ -109,7 +109,7 @@ def construct_register_schedule(circuit_schedule, num_qubits, **kwargs):
     return register_schedule
 
 
-def qc_to_ryd(qc, transpilation_rules, backend: BackendConfig = backend):
+def qc_to_ryd(qc, transpilation_rules, backend: BackendConfig = default_backend):
     gates = extract_qc_data(qc)
     num_qubits = qc.qregs[0].size
     circuit_schedule = {}

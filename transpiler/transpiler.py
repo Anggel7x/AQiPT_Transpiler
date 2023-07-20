@@ -1,30 +1,32 @@
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 from qiskit import QuantumCircuit
 import time
-from transpiler.config.core import BackendConfig, backend
+from transpiler.config.core import BackendConfig, default_backend
 from transpiler.rydberg_blocks.rydberg_qubits import *
 from transpiler.utils.transpiler_utils import *
 from transpiler.transpilation_rules import transpilation_rules
 
 class Transpiler():
     
+    
     def __init__(self,
-                 qc: QuantumCircuit,
-                 backend_config: Optional[BackendConfig] = backend,
+                 backend_config: Optional[BackendConfig] = default_backend,
                  transpilation_rules: Optional[Dict] = transpilation_rules,
-                 *args, **kwargs) -> None:
+                 *args: Any, **kwargs: Any) -> None:
         
-        self.qc = qc
+       
         self.backend_config = backend_config
         self.transpilation_rules = transpilation_rules
         
-    def transpile(self) -> RydbergRegisterSchedule:
         
+    def transpile(self, qc) -> RydbergRegisterSchedule:
+        
+        self.qc = qc
         time_start = time.time()
-        
-        rydberg_schedule = qc_to_ryd(self.qc, self.transpilation_rules, backend=self.backend_config)
+        rydberg_schedule = qc_to_ryd(qc, self.transpilation_rules, backend=self.backend_config)
         self.rydberg_schedule = rydberg_schedule
         time_end = time.time()
+        
         self.transpilation_time = time_end - time_start
         self.rydberg_schedule = rydberg_schedule
         return rydberg_schedule
@@ -38,11 +40,11 @@ class Transpiler():
             qubit = RydbergQubit(
                 nr_levels = atomic_config.nr_levels,
                 name = f"Qubit {i}",
-                initial_state=0,
+                initial_state= 0,
                 schedule=sch,
                 rydberg_states= {
                     'RydbergStates' : atomic_config.rydberg_states,
-                    "l_value": atomic_config.l_values
+                    "l_values": atomic_config.l_values
                 },
                 backend = self.backend_config
             )
@@ -60,11 +62,13 @@ class Transpiler():
             backend = self.backend_config
         )
         
-        qr.compile()
+        qr.build()
         
         self.quantum_register = qr
         
         return qr
-        
-        
-        
+    
+    def __call__(self) -> Any:
+        return self.transpile()
+     
+default_transpiler =  Transpiler()

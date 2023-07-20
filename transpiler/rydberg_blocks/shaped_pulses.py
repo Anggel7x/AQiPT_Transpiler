@@ -4,7 +4,7 @@ from AQiPT.modules.control import AQiPTcontrol as control
 from typing import Optional, Any
 
 from transpiler.utils.schedules_utils import *
-from transpiler.config.core import BackendConfig, backend
+from transpiler.config.core import BackendConfig, default_backend
 
 class ShapedPulse():
     def __init__(self,
@@ -39,7 +39,7 @@ class ShapedPulse():
                 self.backend_config = backend_config
             
             else:
-                self.backend_config = backend
+                self.backend_config = default_backend
                 
             simulation_config = self.backend_config.simulation_config
             T_MAX = simulation_config.time_simulation

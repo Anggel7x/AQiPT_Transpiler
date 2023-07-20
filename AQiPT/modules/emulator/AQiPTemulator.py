@@ -1270,10 +1270,10 @@ class atomicQRegister:
         '''
         
         if solver=='QuTiP-QME':
-            if self.__mode=='free':
+            if mode=='free':
                 self.simRes = qt.mesolve(self.nHamiltonian, qt.ket2dm(self.initnState), self.times, c_ops=self.ncops, e_ops=self.nmops, options=self.simOpts)
 
-            elif self.__mode=='control':
+            elif mode=='control':
                 # self.simRes = qt.mesolve(self.tnHamiltonian, qt.ket2dm(self.initnState), self.times, c_ops=self.ncops, e_ops=self.nmops, options=self.simOpts)
 
                 if self.ncops==None:
