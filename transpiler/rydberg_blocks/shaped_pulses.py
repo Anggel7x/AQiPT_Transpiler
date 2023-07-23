@@ -84,10 +84,10 @@ class GaussianPulse(ShapedPulse):
             self.width = (self.t_end - self.t_start)/2
             self.t_o = self.t_start + self.width
             self.g_std = self.width/4
-            self.area = self.g_std*np.power(4*np.pi, 1/2)*np.abs(self.amp)
+            self.area = self.g_std*np.power(5*np.pi, 1/2)*np.abs(self.amp)
             
         elif self.area != None and self.t_start != None: # Segundo modo
-            self.g_std = (self.area/(np.power(4*np.pi, 1/2)*np.abs(self.amp)))
+            self.g_std = (self.area/(np.power(5*np.pi, 1/2)*np.abs(self.amp)))
             self.width = self.g_std*4
             self.t_o = self.t_start + self.width
             self.t_end = self.t_start + 2*self.width

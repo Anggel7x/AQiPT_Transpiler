@@ -54,7 +54,12 @@ class RydbergQubit():
                 'dissipators': dissipators_q,
                 'rydbergstates': rydbergstates_q}; 
 
-        pulsed_qubit = emulator.atomicModel(times, Nrlevels, psi0, sim_params_q, name=self.name, simOpt=qt.Options(nsteps=120000, rtol=1e-6, max_step=10e-6, store_states=False))
+        simulation_config = self.backend_config.simulation_config
+        pulsed_qubit = emulator.atomicModel(times, Nrlevels, psi0, sim_params_q, name=self.name, 
+                                            simOpt=qt.Options(nsteps=simulation_config.nsteps, 
+                                                              rtol=simulation_config.rtol, 
+                                                              max_step=simulation_config.max_steps, 
+                                                              store_states=simulation_config.store_states))
         pulsed_qubit.modelMap(plotON=False)
 
         pulsed_qubit.buildTHamiltonian()
@@ -167,7 +172,7 @@ class RydbergQuantumRegister():
         
         return atoms
 
-    def compile(self, nsteps=10000, rtol=1e-6, max_steps=10e-6):
+    def compile(self):
 
         atomic_register = emulator.atomicQRegister(
             physicalRegisters=self._atoms(),
@@ -184,7 +189,11 @@ class RydbergQuantumRegister():
        
         atomic_register.registerMap(plotON=False, figure_size=(3,3)); 
 
-        atomic_register.simOpts = qt.Options(nsteps=nsteps, rtol=rtol, max_step=max_steps, store_states=True)
+        simulation_config = self.backend_config.simulation_config
+        atomic_register.simOpts = qt.Options(nsteps=simulation_config.nsteps, 
+                                             rtol=simulation_config.rtol, 
+                                             max_step=simulation_config.max_steps, 
+                                             store_states=simulation_config.store_states)
         atomic_register.compile()
         atomic_register.buildInteractions(c6=self.c6, c3=self.c3); 
         

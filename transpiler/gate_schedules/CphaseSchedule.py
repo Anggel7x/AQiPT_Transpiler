@@ -39,8 +39,7 @@ class CphaseSchedule(GateSchedule):
         rc1 = RxSchedule(theta=np.pi, t_start=t_start, freq=freq, shape=shape, pair=c_pair, backend=self.backend_config)
 
         # r -> r 
-        r2 = RxSchedule(theta=2*np.pi,t_start=rc1.t_end, freq=freq_int, shape=shape, pair=t_pair, backend=self.backend_config)
-
+        r2 = RxSchedule(theta=2*np.pi,t_start=rc1.t_end, freq=freq_int, shape="gaussian", pair=t_pair, backend=self.backend_config)
         # r -> 1
         rc2 = RxSchedule(theta=np.pi, t_start=r2.t_end, freq=freq, shape=shape, pair=c_pair, backend=self.backend_config)
 

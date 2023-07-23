@@ -9,10 +9,10 @@ class SimulationConfig(BaseSettings):
     time_simulation: float = 5
     sampling: int = int(1e3)
     bitdepth: int = 16
-    ARGS: Dict = {'sampling': sampling,
-                   'bitdepth': bitdepth,
-                   'time_dyn': time_simulation}
-    PULSE_PARAMS: aqipt.general_params = aqipt.general_params(ARGS)  
+    nsteps: int = 10000
+    rtol: float = 1e6
+    max_steps: float = 10e-6
+    store_states: bool = True
     
     
 class PulseConfig(BaseSettings):

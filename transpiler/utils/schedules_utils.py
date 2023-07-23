@@ -18,7 +18,7 @@ def merge_pulses(pulses :dict, name: str):
                     v2 = values[j]
 
                     # Matching the same levels of coupling
-                    if v2[0] == v1[0]:
+                    if v2[0] == v1[0] and v2[1] == v1[1]:
                         v1 = [v1[0], v1[1], np.add(v1[2], v2[2])]
                         values[i] = v1
                         done.append(j)
@@ -54,6 +54,8 @@ def coupling_detuning_constructors(couplings: List[float], detunings : List[floa
 
 
 def freq_given_phi(phi : float, Vct : float):
+    phi = max(phi, np.pi/8)
+    phi = min(phi, 0.9*np.pi)
     freq = + Vct * 8.96698 * np.log(-0.361329*(0.374038 - phi))/(2*np.pi)
     return freq
     

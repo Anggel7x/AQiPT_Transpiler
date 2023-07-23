@@ -1750,7 +1750,7 @@ class atomicQRegister:
         '''
             Return the plot of the map for the N atomicModel() that constitute the atomicQRegister().
         '''
-        plt.figure(figsize=figure_size);
+        
         
         self._graphscolors = list(self._AMs[0]._graph['colormap']);
         
@@ -1768,13 +1768,13 @@ class atomicQRegister:
             rydberg_edges = self.connectivity;
 
         G.add_edges_from(rydberg_edges);
-
-        nx.draw(G, with_labels=True, node_color=self._graphscolors);
         
         self._graphRegister = G;
         self.connectivity = rydberg_edges;
 
         if plotON==True:
+            plt.figure(figsize=figure_size);
+            nx.draw(G, with_labels=True, node_color=self._graphscolors);
             print('Violet nodes: Rydberg states. Blue nodes: Ground states')
         return self._graphRegister;
 

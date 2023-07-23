@@ -77,13 +77,14 @@ class RydbergQubitSchedule():
 
         for key in self.coupling_pulses.keys():
             pair = self.coupling_pulses[key][0]
-            p_pulses[str(pair)] = []
+            omega = self.coupling_pulses[key][1]
+            p_pulses[str(pair)+str(omega)] = []
 
         for key in self.coupling_pulses.keys():
             pair = self.coupling_pulses[key][0]
             pulse = self.coupling_pulses[key][-1]
             omega = self.coupling_pulses[key][1]
-            p_pulses[str(pair)].append((pulse,omega))
+            p_pulses[str(pair)+str(omega)].append((pulse,omega))
     
         L = len(p_pulses.keys())
         fig, axis = plt.subplots(L, figsize=(16,2*L))
@@ -111,7 +112,7 @@ class RydbergQubitSchedule():
                     if factor != 1:
                         axis.text(.01, .99, f'$\Omega = 2\pi{factor:0.2f}$', ha='left', va='top', transform=axis.transAxes)
 
-                axis.set_ylabel(f'{key}')
+                axis.set_ylabel(f'{key[:6]}')
                
                 axis.legend()
             else :
@@ -132,7 +133,7 @@ class RydbergQubitSchedule():
                     
                     axis[i].text(.01, .99, f'$\Omega = 2\pi{factor:0.2f}$', ha='left', va='top', transform=axis[i].transAxes)
 
-                axis[i].set_ylabel(f'{key}')
+                axis[i].set_ylabel(f'{key[:6]}')
                 axis[i].legend()
                
         fig.suptitle(f'Couplings {name}', fontsize=16)

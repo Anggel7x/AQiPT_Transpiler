@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from qiskit import QuantumCircuit
 import time
 from transpiler.config.core import BackendConfig, default_backend
@@ -31,11 +31,29 @@ class Transpiler():
         self.rydberg_schedule = rydberg_schedule
         return rydberg_schedule
     
-    def build_transpiled_circuit(self, init_state)-> RydbergQuantumRegister:
+    def build_transpiled_circuit(self, init_state)-> Union[RydbergQuantumRegister, RydbergQubit]:
         
         schedules = self.rydberg_schedule.schedules
         atomic_config = self.backend_config.atomic_config
         qubits = []
+        
+        if len(schedules) == 1:
+            qubit = RydbergQubit(
+                nr_levels = atomic_config.nr_levels,
+                name = f"Qubit 0",
+                initial_state=init_state,
+                schedule=schedules[0],
+                rydberg_states= {
+                    'RydbergStates' : atomic_config.rydberg_states,
+                    "l_values": atomic_config.l_values
+                },
+                backend = self.backend_config
+            )
+            
+            self.quantum_register = qubit
+            qubit.build()
+            return qubit
+        
         for i, sch in enumerate(schedules):
             qubit = RydbergQubit(
                 nr_levels = atomic_config.nr_levels,

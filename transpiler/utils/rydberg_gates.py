@@ -280,6 +280,53 @@ class RydbergCXGate(Gate):
                   )
         qc.unitary(cp, [0,1])
         self.definition = qc
+
+class RydbergXYGate(Gate):
+    '''
+        Clase que contiene la transformación Swap en átomos de Rydberg
+    '''
+    def __init__(
+        self,
+        theta: ParameterValueType,
+        label: Optional[str] = None,
+    ):
+    
+        super().__init__('xy',2, [theta], label=label)
+    
+    def _define(self):
+        '''
+            Definición circuital de la transformación a base de un operador matricial.
+        '''
+        theta = self.params
+        
+        qc = RydbergQuantumCircuit(2, name=self.name)
+        
+        xy = Operator(np.array(
+                    [
+                    [1, 0, 0, 0],
+                    [0, np.cos(theta/2), -1j*np.sin(theta/2), 0],
+                    [0, -1j*np.sin(theta/2), np.cos(theta/2), 0],
+                    [0, 0, 0, 1],
+                   ])
+                  )
+        qc.unitary(xy, [0,1])
+        self.definition = qc
+    
+    def __array__(self, dtype = complex):
+        '''
+            Definición matricial de la transformación como un numpy.array
+        '''
+        theta = self.params
+        
+        return np.array(
+                    [
+                    [1, 0, 0, 0],
+                    [0, np.cos(theta/2), -1j*np.sin(theta/2), 0],
+                    [0, -1j*np.sin(theta/2), np.cos(theta/2), 0],
+                    [0, 0, 0, 1]
+                    ],
+                    dtype=dtype)
+        
         
 class RydbergSwapGate(Gate):
     '''
@@ -359,7 +406,7 @@ class RydbergQuantumCircuit(QuantumCircuit):
     
     def cp(self, phi11:float, qubit1:Union[int, List[int]], qubit2: Union[int, List[int]]):
         """
-            Método que aplica la transformación CPhase(phi00, phi01, phi10, phi11) entre 
+            Método que aplica la transformación CPhase(phi11) entre 
             'qubit1' y 'qubit2'.
 
             Args:
@@ -368,11 +415,29 @@ class RydbergQuantumCircuit(QuantumCircuit):
                 qubit2 (Qubit [int]): Qubit 2
 
             Returns:
-                RydbergQuantumCircuit: Circuito de Rydberg con CPhase(phi00, phi01, phi10, phi11)
+                RydbergQuantumCircuit: Circuito de Rydberg con CPhase(phi11)
                 aplicada sobre 'qubit1' y 'qubit2'.
 
         """
         return self.append(RydbergCPhase(phi11), [qubit1, qubit2])
+    
+    def xy(self, theta:float, qubit1: Union[int, List[int]], qubit2: Union[int, List[int]]):
+        """
+            Método que aplica la transformación XY(theta) entre 
+            'qubit1' y 'qubit2'.
+
+            Args:
+                theta (float): Ángulo de rotación theta
+                qubit1 (Qubit [int]): Qubit 1
+                qubit2 (Qubit [int]): Qubit 2
+
+            Returns:
+                RydbergQuantumCircuit: Circuito de Rydberg con XY(theta)
+                aplicada sobre 'qubit1' y 'qubit2'.
+
+        """
+        return self.append(RydbergXYGate(theta), [qubit1, qubit2])
+        
     
     """Compuertas comunes a base de las basicas de Átomos de Rydberg"""
 
