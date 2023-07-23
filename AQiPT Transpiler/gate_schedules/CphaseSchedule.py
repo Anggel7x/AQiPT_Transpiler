@@ -1,12 +1,16 @@
-from transpiler.rydberg_blocks.shaped_pulses import *
-from transpiler.rydberg_blocks.rydberg_qubits import *
-from transpiler.gate_schedules.GateSchedule import *
-from transpiler.gate_schedules.RxSchedule import RxSchedule
-from transpiler.utils.schedules_utils import freq_given_phi
+from ..rydberg_blocks.shaped_pulses import *
+from ..rydberg_blocks.rydberg_qubits import *
+from ..gate_schedules.GateSchedule import *
+from ..gate_schedules.RxSchedule import RxSchedule
+from ..utils.schedules_utils import freq_given_phi
 
 
 class CphaseSchedule(GateSchedule):
+    """The class description of the CPHASE gate, described by the matrix:
     
+        .. math::
+
+    """
     def __init__(self, 
                  t_start : float = 1, 
                  phi11: float = 0,

@@ -1,7 +1,6 @@
-from transpiler.rydberg_blocks.shaped_pulses import *
-from transpiler.rydberg_blocks.rydberg_qubits import *
-from transpiler.config.core import default_backend
-default_backend
+from ..rydberg_blocks.shaped_pulses import *
+from ..rydberg_blocks.rydberg_qubits import *
+from ..config.core import default_backend
 
 
 class GateSchedule():

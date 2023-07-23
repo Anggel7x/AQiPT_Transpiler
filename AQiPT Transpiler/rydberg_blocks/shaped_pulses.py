@@ -3,8 +3,8 @@ from AQiPT import AQiPTcore as aqipt
 from AQiPT.modules.control import AQiPTcontrol as control
 from typing import Optional, Any
 
-from transpiler.utils.schedules_utils import *
-from transpiler.config.core import BackendConfig, default_backend
+from ..utils.schedules_utils import *
+from ..config.core import BackendConfig, default_backend
 
 class ShapedPulse():
     def __init__(self,

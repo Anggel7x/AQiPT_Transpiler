@@ -1,7 +1,7 @@
-from transpiler.rydberg_blocks.shaped_pulses import *
-from transpiler.rydberg_blocks.rydberg_qubits import *
-from .GateSchedule import *
-from transpiler.gate_schedules.UxySchedule import UxySchedule
+from ..rydberg_blocks.shaped_pulses import *
+from ..rydberg_blocks.rydberg_qubits import *
+from ..gate_schedules.GateSchedule import *
+from ..gate_schedules.UxySchedule import UxySchedule
 
 
 class CUxySchedule(GateSchedule):

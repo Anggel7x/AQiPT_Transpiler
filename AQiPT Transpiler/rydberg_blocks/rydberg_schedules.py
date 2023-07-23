@@ -1,10 +1,9 @@
-from AQiPT import AQiPTcore as aqipt
 import matplotlib.pyplot as plt
-from transpiler.rydberg_blocks.shaped_pulses import *
 from typing import Any, List
-from transpiler.utils.schedules_utils import *
-
-from transpiler.config.core import BackendConfig, default_backend
+from AQiPT import AQiPTcore as aqipt
+from ..rydberg_blocks.shaped_pulses import *
+from ..utils.schedules_utils import *
+from ..config.core import BackendConfig, default_backend
 
 plt.style.use("dark_background")
 

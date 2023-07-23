@@ -1,10 +1,9 @@
-from typing import Any, Dict, Optional, Union
-from qiskit import QuantumCircuit
 import time
-from transpiler.config.core import BackendConfig, default_backend
-from transpiler.rydberg_blocks.rydberg_qubits import *
-from transpiler.utils.transpiler_utils import *
-from transpiler.transpilation_rules import transpilation_rules
+from typing import Any, Dict, Optional, Union
+from .config.core import BackendConfig, default_backend
+from .rydberg_blocks.rydberg_qubits import *
+from .utils.transpiler_utils import *
+from .transpilation_rules import transpilation_rules
 
 class Transpiler():
     

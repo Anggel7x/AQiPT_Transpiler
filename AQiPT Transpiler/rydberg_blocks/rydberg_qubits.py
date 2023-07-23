@@ -5,8 +5,8 @@ from .shaped_pulses import *
 from typing import Any, List, Dict, Optional
 from itertools import product
 
-from transpiler.config.core import BackendConfig, default_backend
-from transpiler.rydberg_blocks.rydberg_schedules import RydbergQubitSchedule, RydbergRegisterSchedule
+from ..config.core import BackendConfig, default_backend
+from ..rydberg_blocks.rydberg_schedules import RydbergQubitSchedule, RydbergRegisterSchedule
 
 
 class RydbergQubit():

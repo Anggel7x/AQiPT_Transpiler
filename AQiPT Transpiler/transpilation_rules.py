@@ -1,7 +1,8 @@
+from typing import List, Dict, Callable
 import numpy as np
 
-from transpiler.gate_schedules.schedules import *
-from transpiler.config.core import BackendConfig, default_backend
+from .gate_schedules.schedules import *
+from .config.core import BackendConfig, default_backend
 
 
 """ (name)_rule(args):
@@ -20,7 +21,12 @@ from transpiler.config.core import BackendConfig, default_backend
         ValueError: If the number of qubits does not match.
 """
 
-def transpilation_rule(func):
+def transpilation_rule(func : Callable) -> Callable:
+    """Decorator for transpilation rules. It extracts common arguments and the backend.
+
+    Args:
+        func (_type_): _description_
+    """
     def extract_backend(*args, **kwargs):
         
         if "backend" in kwargs.keys():
@@ -51,8 +57,20 @@ def transpilation_rule(func):
     return extract_backend
 
 @transpilation_rule
-def uxy_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
-    
+def uxy_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the Uxy transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "uxy"
+        params (List[float]): List of parameters for the gate, theta and phi
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "uxy"
+        ValueError: The number of qubits is different of 1
+    """
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
     shape = kwargs["shape"]
@@ -63,6 +81,7 @@ def uxy_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     if num_qubits != 1:
         raise ValueError(f"Number of qubits {num_qubits} != 1")
     
+    # Get the gate angles and qubit
     theta = params[0]
     phi = params[1]
     qubit = qubits[0]
@@ -79,7 +98,20 @@ def uxy_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     qubit_info[1] = Uxy.t_end + t_wait
  
 @transpilation_rule
-def rx_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def rx_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the rx transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "rx"
+        params (List[float]): List of parameters for the gate, usually angles
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "rx"
+        ValueError: The number of qubits is different of 1
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -106,7 +138,20 @@ def rx_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     qubit_info[1] = Rx.t_end + t_wait
 
 @transpilation_rule
-def ry_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def ry_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the ry transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "ry"
+        params (List[float]): List of parameters for the gate, usually angles
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "ry"
+        ValueError: The number of qubits is different of 1
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -134,7 +179,20 @@ def ry_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     qubit_info[1] = Ry.t_end + t_wait
  
 @transpilation_rule   
-def rz_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def rz_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the rz transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "rz"
+        params (List[float]): List of parameters for the gate, usually angles
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "rz"
+        ValueError: The number of qubits is different of 1
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -161,7 +219,20 @@ def rz_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     qubit_info[1] = Rz.t_end + t_wait
 
 @transpilation_rule
-def x_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def x_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the x transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "x"
+        params (List[float]): List of parameters for the gate, usually angles
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "x"
+        ValueError: The number of qubits is different of 1
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -187,7 +258,20 @@ def x_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     qubit_info[1] = Rx.t_end + t_wait
 
 @transpilation_rule 
-def y_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def y_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the y transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "y"
+        params (List[float]): List of parameters for the gate, usually angles
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "y"
+        ValueError: The number of qubits is different of 1
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -214,7 +298,20 @@ def y_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     qubit_info[1] = Ry.t_end + t_wait
 
 @transpilation_rule 
-def z_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def z_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the z transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "z"
+        params (List[float]): List of parameters for the gate, usually angles
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "z"
+        ValueError: The number of qubits is different of 1
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -240,7 +337,20 @@ def z_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     qubit_info[1] = Rz.t_end + t_wait
 
 @transpilation_rule
-def h_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def h_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the h transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "h"
+        params (List[float]): List of parameters for the gate, usually angles
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "h"
+        ValueError: The number of qubits is different of 1
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -267,7 +377,20 @@ def h_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     qubit_info[1] = Uxy2.t_end + t_wait
 
 @transpilation_rule 
-def cuxy_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def cuxy_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the cuxy transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "cuxy"
+        params (List[float]): List of parameters for the gate, theta and phi
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "cuxy"
+        ValueError: The number of qubits is different of 2
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -301,7 +424,20 @@ def cuxy_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     circuit_schedule[str(targt)][1] = CUxy.t_end  + t_wait
 
 @transpilation_rule 
-def cx_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def cx_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the cx transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "cx"
+        params (List[float]): List of parameters for the gate
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "cx"
+        ValueError: The number of qubits is different of 2
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -335,7 +471,20 @@ def cx_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     circuit_schedule[str(targt)][1] = CUxy.t_end  + t_wait
 
 @transpilation_rule 
-def cp_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def cp_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the cp transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "cp"
+        params (List[float]): List of parameters for the gate, phi_11
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "cp"
+        ValueError: The number of qubits is different of 2
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -369,7 +518,20 @@ def cp_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     circuit_schedule[str(targt)][1] = CP.t_end  + t_wait
 
 @transpilation_rule      
-def iswap_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def iswap_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the iswap transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "iswap"
+        params (List[float]): List of parameters for the gate, theta and phi
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "iswap"
+        ValueError: The number of qubits is different of 2
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]
@@ -403,7 +565,20 @@ def iswap_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
     circuit_schedule[str(targt)][1] = XY.t_end  + t_wait
     
 @transpilation_rule      
-def xy_rule(name, params, num_qubits, qubits, circuit_schedule, **kwargs):
+def xy_rule(name: str, params: List[float], num_qubits: int, qubits: List[int], circuit_schedule: Dict[str, List], **kwargs):
+    """The application for the xy transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "xy"
+        params (List[float]): List of parameters for the gate, Theta
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "xy"
+        ValueError: The number of qubits is different of 2
+    """
     
     t_wait = kwargs["t_wait"]
     freq = kwargs["freq"]

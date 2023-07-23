@@ -2,6 +2,8 @@ __pycache__/
 .ipynb_checkpoints/
 transpilador.code-workspace
 venv/
+docs/
+saved_sims/
 extras/
 notebooks/
 *.ipynb
