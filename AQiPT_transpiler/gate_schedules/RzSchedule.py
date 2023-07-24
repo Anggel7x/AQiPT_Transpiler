@@ -15,9 +15,9 @@ class RzSchedule(UxySchedule):
 
     def _schedule(self):
         
-        Ry = UxySchedule(np.pi/2, +np.pi/2, t_start=self.t_start, freq=self.freq,shape=self.shape, backend=self.backend_config)
+        Ry = UxySchedule(np.pi/2, -np.pi/2, t_start=self.t_start, freq=self.freq,shape=self.shape, backend=self.backend_config)
         Rx = UxySchedule(self.theta, 0, t_start=Ry.t_end, freq=self.freq, shape=self.shape, backend=self.backend_config)
-        R = UxySchedule(np.pi/2, -np.pi/2, t_start=Rx.t_end, freq=self.freq, shape=self.shape, backend=self.backend_config)
+        R = UxySchedule(np.pi/2, +np.pi/2, t_start=Rx.t_end, freq=self.freq, shape=self.shape, backend=self.backend_config)
         
         R.q_schedule.add_function(Rx.q_schedule.coupling_pulses["Coupling0"][2], "Coupling0")
         R.q_schedule.add_function(Ry.q_schedule.coupling_pulses["Coupling0"][2], "Coupling0")

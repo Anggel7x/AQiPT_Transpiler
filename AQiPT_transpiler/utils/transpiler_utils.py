@@ -1,8 +1,8 @@
 from typing import Callable
-from transpiler.transpilation_rules import *
-from transpiler.rydberg_blocks.rydberg_qubits import RydbergQubitSchedule, RydbergRegisterSchedule
-from transpiler.gate_schedules.UxySchedule import CERO_FUNCTION
-from transpiler.utils.transpiler_utils import *
+from AQiPT_transpiler.transpilation_rules import *
+from AQiPT_transpiler.rydberg_blocks.rydberg_schedules import RydbergQubitSchedule, RydbergRegisterSchedule
+from AQiPT_transpiler.gate_schedules.UxySchedule import CERO_FUNCTION
+from AQiPT_transpiler.utils.transpiler_utils import *
 
 def get_transpilation_rule(name, transpilation_rules) -> Callable:
     """This function gets the functional asociation between the name

@@ -6,9 +6,29 @@ from ..utils.schedules_utils import freq_given_phi
 
 
 class CphaseSchedule(GateSchedule):
-    """The class description of the CPHASE gate, described by the matrix:
-    
-        .. math::
+    r"""This is a diagonal and symmetric gate that induces a
+    phase on the state of the target qubit, depending on the control state.
+
+    **Circuit symbol:**
+
+    .. parsed-literal::
+
+        q_0: ─■──
+              │φ11
+        q_1: ─■──
+
+
+    **Matrix representation:**
+
+    .. math::
+
+        \text{CPHASE}(\phi_{11}) =
+            \begin{pmatrix}
+                1 & 0 & 0 & 0 \\
+                0 & -1 & 0 & 0 \\
+                0 & 0 & -1 & 0 \\
+                0 & 0 & 0 & e^{-i\phi_{11}}
+            \end{pmatrix}
 
     """
     def __init__(self, 

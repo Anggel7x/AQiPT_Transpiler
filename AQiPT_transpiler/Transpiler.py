@@ -7,7 +7,6 @@ from .transpilation_rules import transpilation_rules
 
 class Transpiler():
     
-    
     def __init__(self,
                  backend_config: Optional[BackendConfig] = default_backend,
                  transpilation_rules: Optional[Dict] = transpilation_rules,
