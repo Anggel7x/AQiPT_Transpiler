@@ -1,4 +1,5 @@
 annotated-types==0.5.0
+-e git+https://github.com/Anggel7x/Transpilador.git@88bfd8de50a6ea65025a851346b5611551c18c56#egg=AQiPT&subdirectory=aqipt
 asttokens==2.2.1
 attrs==23.1.0
 backcall==0.2.0

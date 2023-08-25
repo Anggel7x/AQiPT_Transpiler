@@ -63,11 +63,10 @@ class AtomicConfig(BaseSettings):
     nr_levels: int =  4
     rydberg_states: List[int] = [2,3]
     l_values: List[int] = [1,2]
-    possible_transitions: Any = "All"
     c6_constant: float = - 2*np.pi*1520
     c3_constant: float = - 2*np.pi*7950
     R: float = 2
-    layout: List[Tuple[int,int,int]] = [(0,0,0), (0,R,0), (R,0,0), (R,R,0),(0,2*R,0)] 
+    layout: List[Tuple] = [(0,0,0), (0,R,0), (R,0,0), (R,R,0),(0,0,R)] 
     connectivity: List[Any] = ["All", []]
 
 
