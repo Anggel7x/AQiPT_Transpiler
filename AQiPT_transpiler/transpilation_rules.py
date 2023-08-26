@@ -5,7 +5,8 @@ from .gate_schedules.schedules import *
 from .config.core import BackendConfig, default_backend
 
 
-""" (name)_rule(args):
+def transpilation_rule(func: Callable) -> Callable:
+    """(name)_rule(args):
 
     Transpilation rule for the (name) gate.
 
@@ -19,11 +20,8 @@ from .config.core import BackendConfig, default_backend
     Raises:
         ValueError: If name does not match.
         ValueError: If the number of qubits does not match.
-"""
 
-
-def transpilation_rule(func: Callable) -> Callable:
-    """Decorator for transpilation rules. It extracts common arguments and the backend.
+    Decorator for transpilation rules. It extracts common arguments and the backend.
 
     Args:
         func (_type_): _description_

@@ -27,7 +27,7 @@ class CUxySchedule(GateSchedule):
             theta=np.pi,
             t_start=self.t_start,
             freq=self.freq,
-            shape=self.freq,
+            shape=self.shape,
             pair=self.pair[0],
             backend=self.backend_config,
         )

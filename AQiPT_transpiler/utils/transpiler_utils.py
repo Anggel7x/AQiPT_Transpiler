@@ -138,7 +138,7 @@ def qc_to_ryd(
     gates = extract_qc_data(qc)
     num_qubits = qc.qregs[0].size
     circuit_schedule = {}
-    circuit_schedule = transpile_circ_schs(
+    circuit_schedule = transpile_circ_sch(
         gates, transpilation_rules, num_qubits, backend=backend
     )
     register_sch = construct_register_schedule(

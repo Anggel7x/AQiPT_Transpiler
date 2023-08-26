@@ -1,5 +1,5 @@
 import time
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Union
 from .config.core import BackendConfig, default_backend
 from .rydberg_blocks.rydberg_qubits import (
     RydbergQuantumRegister,
@@ -13,8 +13,8 @@ from .transpilation_rules import transpilation_rules as default_transp_rules
 class Transpiler:
     def __init__(
         self,
-        backend_config: Optional[BackendConfig] = default_backend,
-        transpilation_rules: Optional[Dict] = default_transp_rules,
+        backend_config: BackendConfig = default_backend,
+        transpilation_rules: Dict = default_transp_rules,
         *args: Any,
         **kwargs: Any,
     ) -> None:
