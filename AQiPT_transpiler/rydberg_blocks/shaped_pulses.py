@@ -1,19 +1,19 @@
+from typing import Optional
 import numpy as np
 from AQiPT.modules.control import AQiPTcontrol as control
-from typing import Optional
-
-from ..utils.schedules_utils import *
 from ..config.core import BackendConfig, default_backend
 
 
 class ShapedPulse:
+    r"""CLase que contiene los parametros de un pulso."""
+
     def __init__(
         self,
         t_o: Optional[float] = None,
         t_start: Optional[float] = None,
         t_end: Optional[float] = None,
-        amp: Optional[float] = 1,
-        width: Optional[int] = 0,
+        amp: float = 1,
+        width: float = 0,
         name: Optional[str] = None,
         color: Optional[str] = None,
         area: Optional[float] = None,
@@ -23,7 +23,7 @@ class ShapedPulse:
         self.t_start = t_start
         self.t_end = t_end
         self.width = width
-        self.tg = 2 * self.width
+        self.tg = 2.0 * self.width
         self.amp = amp
         self.name = name
         self.color = color
@@ -32,7 +32,7 @@ class ShapedPulse:
         self.args = None
         self.function = None
 
-        if "backend" in kwargs.keys():
+        if "backend" in kwargs:
             backend_config = kwargs["backend"]
             assert isinstance(backend_config, BackendConfig)
 
@@ -42,22 +42,27 @@ class ShapedPulse:
             self.backend_config = default_backend
 
         simulation_config = self.backend_config.simulation_config
-        T_MAX = simulation_config.time_simulation
+        t_max = simulation_config.time_simulation
 
-        self.tp_window = T_MAX
+        self.tp_window = t_max
 
     def info(self):
-        return f"{self.type} ({self.name}) - Amp:{self.amp:0.5f}, Center: {self.t_o:0.2f}, Gate time: {self.tg:0.5f}"
+        """Imprime la información completa del pulso."""
+        print(
+            f"{self.type} ({self.name}) - Amp:{self.amp:0.5f}, Center: {self.t_o:0.2f}, Gate time: {self.tg:0.5f}"
+        )
 
 
 class GaussianPulse(ShapedPulse):
+    r"""Pulse de forma Gaussiana."""
+
     def __init__(
         self,
         t_o: Optional[float] = None,
         t_start: Optional[float] = None,
         t_end: Optional[float] = None,
-        amp: Optional[int] = 1,
-        g_std: Optional[float] = np.pi / 40,
+        amp: int = 1,
+        g_std: float = np.pi / 40,
         name: Optional[str] = None,
         color: Optional[str] = None,
         area: Optional[float] = None,
@@ -82,13 +87,13 @@ class GaussianPulse(ShapedPulse):
             En este caso se determina la desviación estandar y el ancho (que debe ser ajustado), luego
             se calcula el tiempo central del pulso y los demas parámetros.
         """
-        if self.t_start != None and self.t_end != None:  # Primer modo
+        if self.t_start is not None and self.t_end is not None:  # Primer modo
             self.width = (self.t_end - self.t_start) / 2
             self.t_o = self.t_start + self.width
             self.g_std = self.width / 4
             self.area = self.g_std * np.power(5 * np.pi, 1 / 2) * np.abs(self.amp)
 
-        elif self.area != None and self.t_start != None:  # Segundo modo
+        elif self.area is not None and self.t_start is not None:  # Segundo modo
             self.g_std = self.area / (np.power(5 * np.pi, 1 / 2) * np.abs(self.amp))
             self.width = self.g_std * 4
             self.t_o = self.t_start + self.width
@@ -108,26 +113,28 @@ class GaussianPulse(ShapedPulse):
         self.args = args_list
 
         simulation_config = self.backend_config.simulation_config
-        SAMPLING = simulation_config.sampling
-        T_MAX = simulation_config.time_simulation
+        sampling = simulation_config.sampling
+        t_max = simulation_config.time_simulation
 
-        self.tp_window = T_MAX
+        self.tp_window = t_max
 
-        tp = np.linspace(
-            0, self.tp_window, int((self.tp_window - 0) * SAMPLING / T_MAX)
+        t_p = np.linspace(
+            0, self.tp_window, int((self.tp_window - 0) * sampling / t_max)
         )
-        func = control.function(tp, args_list).gaussian()
+        func = control.function(t_p, args_list).gaussian()
         return func
 
 
 class SquarePulse(ShapedPulse):
+    r"""Pulso de forma cuadrada"""
+
     def __init__(
         self,
         t_o: Optional[float] = None,
         t_start: Optional[float] = None,
         t_end: Optional[float] = None,
-        amp: Optional[float] = 1,
-        width: Optional[int] = 0,
+        amp: float = 1,
+        width: float = 0,
         name: Optional[str] = None,
         color: Optional[str] = None,
         area: Optional[float] = None,
@@ -153,14 +160,14 @@ class SquarePulse(ShapedPulse):
 
         # The area carries a factor of 1/2 over the calculations given the form of the Hamiltonian
 
-        if self.t_start != None and self.t_end != None:
+        if self.t_start is not None and self.t_end is not None:
             self.width = (self.t_end - self.t_start) / 2
             self.t_o = self.t_start + self.width
             self.tg = self.width * 2
             self.area = self.tg * np.abs(self.amp)
 
         # Area and starting setting
-        elif self.area != None and self.t_start != None:
+        elif self.area is not None and self.t_start is not None:
             self.width = 1 / 2 * (self.area / (np.abs(self.amp)))
             self.t_o = self.t_start + self.width
             self.tg = self.width * 2
@@ -179,16 +186,16 @@ class SquarePulse(ShapedPulse):
 
         self.args = args_list
         simulation_config = self.backend_config.simulation_config
-        SAMPLING = simulation_config.sampling
-        T_MAX = simulation_config.time_simulation
+        sampling = simulation_config.sampling
+        t_max = simulation_config.time_simulation
 
-        self.tp_window = T_MAX
+        self.tp_window = t_max
 
-        tp = np.linspace(
-            0, self.tp_window, int((self.tp_window - 0) * SAMPLING / T_MAX)
+        t_p = np.linspace(
+            0, self.tp_window, int((self.tp_window - 0) * sampling / t_max)
         )
 
-        func = control.function(tp, args_list).step()
+        func = control.function(t_p, args_list).step()
         return func
 
 

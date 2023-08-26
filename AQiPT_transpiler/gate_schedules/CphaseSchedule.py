@@ -1,35 +1,37 @@
-from ..rydberg_blocks.shaped_pulses import *
-from ..rydberg_blocks.rydberg_qubits import *
-from ..gate_schedules.GateSchedule import *
+from typing import Optional
+import numpy as np
+from ..gate_schedules.GateSchedule import GateSchedule
 from ..gate_schedules.RxSchedule import RxSchedule
 from ..utils.schedules_utils import freq_given_phi
 
 
 class CphaseSchedule(GateSchedule):
-    r"""This is a diagonal and symmetric gate that induces a
-    phase on the state of the target qubit, depending on the control state.
+    r"""Este es el schedule ede la compuerta diagonal que introduce una fase en el estado del 
+    qubit objetivo dependiento del estado del control, llamda CPHASE.
 
-    **Circuit symbol:**
-
-    .. parsed-literal::
-
-        q_0: ─■──
-              │φ11
-        q_1: ─■──
-
-
-    **Matrix representation:**
+    **Representación matricial:**
 
     .. math::
 
-        \text{CPHASE}(\phi_{11}) =
+        \text{CPHASE}(\Phi_{11}) =
             \begin{pmatrix}
                 1 & 0 & 0 & 0 \\
                 0 & -1 & 0 & 0 \\
                 0 & 0 & -1 & 0 \\
-                0 & 0 & 0 & e^{-i\phi_{11}}
+                0 & 0 & 0 & e^{i\Phi_{11}}
             \end{pmatrix}
 
+    **Operador evolución:**
+
+    .. math::
+        
+        \begin{split}
+            \hat{U} = &\exp\qty[-i\hat{H}^{r1}_c(\Omega=\Omega_1,\Delta=0)\tau_1] \\
+                &\cross \exp\qty[-i\qty(\hat{H}^{r1}_t(\Omega=\Omega_2, \Delta=0) + \hat{H}^{rrrr}_{c,t})\tau_2] \\
+                &\cross \exp\qty[-i\hat{H}^{r1}_c(\Omega=\Omega_1,\Delta=0)\tau_1] 
+        \end{split}    
+
+    
     """
 
     def __init__(
@@ -37,10 +39,12 @@ class CphaseSchedule(GateSchedule):
         t_start: float = 1,
         phi11: float = 0,
         freq: float = 1,
-        pair: list = [[1, 3], [1, 3]],
+        pair: Optional[list] = None,
         shape: str = "gaussian",
         **kwargs
     ) -> None:
+        if pair is None:
+            pair = [[1, 3], [1, 3]]
         super().__init__(t_start, freq, pair, shape, **kwargs)
 
         self.phi11 = phi11
@@ -54,11 +58,11 @@ class CphaseSchedule(GateSchedule):
         c_pair, t_pair = self.pair[0], self.pair[1]
 
         atomic_config = self.backend_config.atomic_config
-        C6 = atomic_config.c6_constant
-        R = atomic_config.R
-        Vct = C6 / np.power(R, 6)
+        c_6 = atomic_config.c6_constant
+        r_dist = atomic_config.R
+        v_ct = c_6 / np.power(r_dist, 6)
 
-        freq_int = freq_given_phi(self.phi11, Vct)
+        freq_int = freq_given_phi(self.phi11, v_ct)
 
         # 1 -> r
         rc1 = RxSchedule(

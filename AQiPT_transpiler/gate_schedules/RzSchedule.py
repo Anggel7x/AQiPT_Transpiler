@@ -1,18 +1,33 @@
-from ..rydberg_blocks.shaped_pulses import *
-from ..rydberg_blocks.rydberg_qubits import *
+from typing import Optional
+import numpy as np
 from ..gate_schedules.UxySchedule import UxySchedule
 
 
 class RzSchedule(UxySchedule):
+    r"""Este es el schedule para la compurta Rz. 
+    
+    **Representación matricial:**
+
+    .. math::
+        R_z(\theta)_\mathfrak{R} = U_{x,y}(\pi/2,\pi/2)U_{x,y}(\theta,0)U_{x,y}(\pi/2, -\pi/2) = \begin{pmatrix}
+            e^{i\theta/2} & 0 \\
+            0 & e^{-i\theta/2}
+        \end{pmatrix} = R_z(-\theta)
+
+    """
+
     def __init__(
         self,
         theta: float = np.pi,
         t_start: float = 1,
         freq: float = 1,
         shape: str = "square",
+        pair: Optional[list] = None,
         **kwargs
     ) -> None:
-        super().__init__(theta, 0, t_start, freq, shape, **kwargs)
+        if pair is None:
+            pair = [0, 1]
+        super().__init__(theta, 0, t_start, freq, shape, pair, **kwargs)
 
     def _schedule(self):
         Ry = UxySchedule(

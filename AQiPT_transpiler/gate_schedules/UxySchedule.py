@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 from ..rydberg_blocks.shaped_pulses import SquarePulse, GaussianPulse
 from ..rydberg_blocks.rydberg_qubits import RydbergQubitSchedule
@@ -6,6 +7,26 @@ from ..utils.schedules_utils import coupling_detuning_constructors
 
 
 class UxySchedule(GateSchedule):
+    r"""Este es el schedule para la compuerta XY en átomos de Rydberg.
+    
+    **Representación matricial:**
+
+    .. math::
+
+        U_{xy}(\theta, \varphi) = 
+        \qty(\begin{array}{cc}
+         \cos{(\theta/2)} & -i \sin{(\theta/2)e^{-i\varphi}  }  \\
+         -i \sin{(\theta/2)e^{+i\varphi}} & \cos{(\theta/2)}, 
+        \end{array})
+    )
+
+    **Operador evolución:**
+
+    .. math::
+        \hat{H}_j^{ab} = \qty(\frac{\Omega_j(t)}{2}e^{i\varphi_j(t)}\ket{a}\bra{b}+\text{h.c})  
+        - \Delta_j(t)\ket{b}_j\bra{b}.
+    """
+
     def __init__(
         self,
         theta: float = np.pi,
@@ -13,9 +34,11 @@ class UxySchedule(GateSchedule):
         t_start: float = 1,
         freq: float = 1,
         shape: str = "square",
-        pair: list = [0, 1],
+        pair: Optional[list] = None,
         **kwargs,
     ) -> None:
+        if pair is None:
+            pair = [0, 1]
         super().__init__(t_start, freq, pair, shape, **kwargs)
         self.theta = theta
         self.phi = phi

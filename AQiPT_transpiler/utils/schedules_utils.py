@@ -1,28 +1,38 @@
+from typing import List, Tuple, Union
 import numpy as np
-from typing import List
 
 
-def merge_pulses(pulses: dict, name: str):
+def merge_pulses(pulses: dict, name: str) -> dict:
+    r"""Esta función une todas las descripciones funcionales de los
+    pulsos en una sola.
+
+    Args:
+        pulses (dict): Pulsos que se van a unir.
+        name (str): Nombre del pulso donde se van a contener.
+
+    Returns:
+        dict: Acoples unidos.
+    """
     coupling = {}
     done = []
     k = 0
 
     values = list(pulses.values())
-    for i in range(len(values)):
+    for i, vi in enumerate(values):
         if i in done:
             continue
-        v1 = values[i]
+        v1 = vi
 
-        for j in range(len(values)):
+        for j, vj in enumerate(values):
             if i == j:
                 continue
 
-            v2 = values[j]
+            v2 = vj
 
             # Matching the same levels of coupling
             if v2[0] == v1[0] and v2[1] == v1[1]:
                 v1 = [v1[0], v1[1], np.add(v1[2], v2[2])]
-                values[i] = v1
+                vi = v1
                 done.append(j)
 
         coupling[name + str(k)] = v1
@@ -33,8 +43,26 @@ def merge_pulses(pulses: dict, name: str):
 
 
 def coupling_detuning_constructors(
-    couplings: List[float], detunings: List[float], omega_coup=20, omega_detu=0
-) -> tuple():
+    couplings: List[tuple],
+    detunings: List[tuple],
+    omega_coup: Union[List[float], float, int] = 20,
+    omega_detu: Union[List[float], float, int] = 0,
+) -> Tuple[dict, dict]:
+    r"""Función que construye las descripción en diccionartio de los
+    couplings y detunings.
+
+    Args:
+        couplings (List[float]): Lista que contiene todos los acoples con sus
+        pares y funciones
+        detunings (List[float]): Lista que contiene todos las desintonizaciones con sus
+        pares y funciones
+        omega_coup (int, optional): Intensidad del acople. Defaults to 20.
+        omega_detu (int, optional): Intensidad de la desintonización. Defaults to 0.
+
+    Returns:
+        Tuple[dict, dict]: Par de diccionarios que contienen los couplings
+        y detunings ya construidos.
+    """
     coupling1 = {}
 
     if isinstance(omega_coup, (int, float)):
@@ -57,8 +85,18 @@ def coupling_detuning_constructors(
     return coupling1, detuning1
 
 
-def freq_given_phi(phi: float, Vct: float):
+def freq_given_phi(phi: float, v_ct: float) -> float:
+    r"""Función que retorna la frecuencia necesaria para generar un angulo
+    $\Phi_{11}$ bajo la intensidad de interaccion $V_{ct}$.
+
+    Args:
+        phi (float): Angulo requerido.
+        v_ct (float): Intensidad de la interaccioón.
+
+    Returns:
+        float: Frecuencia calculada.
+    """
     phi = max(phi, np.pi / 8)
     phi = min(phi, 0.9 * np.pi)
-    freq = +Vct * 9.55717 * np.log(-0.3614 * (0.3745 - phi)) / (2 * np.pi)
+    freq = +v_ct * 9.55717 * np.log(-0.3614 * (0.3745 - phi)) / (2 * np.pi)
     return freq

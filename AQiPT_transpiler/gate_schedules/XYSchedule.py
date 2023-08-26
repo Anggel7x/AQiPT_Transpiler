@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 from ..rydberg_blocks.shaped_pulses import GaussianPulse, SquarePulse
 from ..rydberg_blocks.rydberg_qubits import RydbergQubitSchedule
@@ -6,15 +7,44 @@ from ..utils.schedules_utils import coupling_detuning_constructors
 
 
 class XYSchedule(GateSchedule):
+    r"""Este es el schedule para la compuerta XY en átomos de Rydberg.
+    
+    **Representación matricial:**
+
+    .. math::
+
+        \text{XY}(\Theta) =
+        \begin{pmatrix}
+             1 & 0 & 0 & 0 \\
+             0 & \cos\qty(\Theta/2) & - i\sin\qty(\Theta/2) & 0 \\
+             0 & - i\sin\qty(\Theta/2) & \cos\qty(\Theta/2) & 0 \\
+             0 & 0 & 0 & 1
+        \end{pmatrix}
+    )
+
+    **Operador evolución:**
+
+    .. math::
+        
+        \begin{split}
+            \hat{U} = & \exp\qty[-i \sum_\alpha \hat{H}_\alpha^{r0} \qty(\Omega_\alpha = \Omega_1, \varphi = \pi) \tau_1] \\
+            & \times \exp\qty[-i\qty(\hat{H}_{c,t}^{rr'r'r} + \sum_\alpha \hat{H}_\alpha^{r'1} \qty(\Omega_\alpha = \Omega_2, \varphi = \pi))\tau_2] \\
+            & \times \exp\qty[-i\qty(\hat{H}_{c,t}^{rr'r'r} + \sum_\alpha \hat{H}_\alpha^{r'1} \qty(\Omega_\alpha = \Omega_2, \varphi = 0))\tau_2] \\
+            & \times \exp\qty[-i \sum_\alpha \hat{H}_\alpha^{r0} \qty(\Omega_\alpha = \Omega_1, \varphi = 0) \tau_1]
+        \end{split}
+    """
+
     def __init__(
         self,
         theta: float = 3 * np.pi,
         t_start: float = 1,
         freq: float = 1,
-        pair: list = [[0, 2], [1, 3]],
+        pair: Optional[list] = None,
         shape: str = "square",
         **kwargs,
     ) -> None:
+        if pair is None:
+            pair = [[0, 2], [1, 3]]
         super().__init__(t_start, freq, pair, shape, **kwargs)
         self.theta = theta
         self._schedule()

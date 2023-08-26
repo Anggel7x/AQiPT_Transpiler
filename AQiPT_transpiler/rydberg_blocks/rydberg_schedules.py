@@ -1,14 +1,16 @@
-import matplotlib.pyplot as plt
 from typing import Any, List
+import numpy as np
+import matplotlib.pyplot as plt
 from AQiPT import AQiPTcore as aqipt
-from ..rydberg_blocks.shaped_pulses import *
-from ..utils.schedules_utils import *
+from ..utils.schedules_utils import merge_pulses
 from ..config.core import BackendConfig, default_backend
 
 plt.style.use("dark_background")
 
 
 class RydbergQubitSchedule:
+    r"""Clase que contiene los parámetros del schedule dedicado para un solo átomos."""
+
     def __init__(self, coupling_pulses: Any, detuning_pulses: Any, **kwargs):
         self.coupling_pulses = coupling_pulses
         self.detuning_pulses = detuning_pulses
@@ -16,7 +18,7 @@ class RydbergQubitSchedule:
         self._merge_pulses()
         self.q_schedule = self
 
-        if "backend" in kwargs.keys():
+        if "backend" in kwargs:
             backend_config = kwargs["backend"]
             assert isinstance(backend_config, BackendConfig)
 
@@ -26,39 +28,75 @@ class RydbergQubitSchedule:
             self.backend_config = default_backend
 
         simulation_config = self.backend_config.simulation_config
-        SAMPLING = simulation_config.sampling
-        BITDEPTH = simulation_config.bitdepth
-        T_MAX = simulation_config.time_simulation
+        sampling = simulation_config.sampling
+        bitdepth = simulation_config.bitdepth
+        t_max = simulation_config.time_simulation
 
         self.times = aqipt.general_params(
-            {"sampling": SAMPLING, "bitdepth": BITDEPTH, "time_dyn": T_MAX}
+            {"sampling": sampling, "bitdepth": bitdepth, "time_dyn": t_max}
         ).timebase()
 
     def _merge_pulses(self):
         self.coupling_pulses = merge_pulses(self.coupling_pulses, "Coupling")
         self.detuning_pulses = merge_pulses(self.detuning_pulses, "Detuning")
 
-    def add_function(self, funct: np.ndarray, where: str, type="coupling"):
-        if type == "coupling":
+    def add_function(self, funct: np.ndarray, where: str, funct_type="coupling"):
+        r"""Añase una función a un schedule.
+
+        Args:
+            funct (np.ndarray): Función a añadir.
+            where (str): Ubicación dentro del schedule
+            funct_type (str, optional): Tipo de función. Defaults to "coupling".
+
+        Raises:
+            ValueError: No se especifico el tipo de función.
+        """
+        if funct_type == "coupling":
             schedule1 = self.coupling_pulses
-        elif type == "detuning":
+        elif funct_type == "detuning":
             schedule1 = self.detuning_pulses
+        else:
+            raise ValueError
         funct_1 = schedule1[where][2]
 
         funct_1 += funct
 
         schedule1[where][2] = funct_1
 
-    def add_coupling(self, schedule2: dict, what: str, type="coupling"):
-        if type == "coupling":
+    def add_coupling(self, schedule2: dict, what: str, funct_type="coupling"):
+        r"""Añade un schedule al schedule del qubit.
+        Args:
+            schedule2 (dict): Schedule que se desea agregar.
+            what (str): Qué se desea agregar del schedule2.
+            funct_type (str, optional): Tipo de función a agregar.. Defaults to "coupling".
+
+        Raises:
+            ValueError: No se definió bien el tipo de función.
+        """
+        if funct_type == "coupling":
             schedule1 = self.coupling_pulses
-        elif type == "detuning":
+        elif funct_type == "detuning":
             schedule1 = self.detuning_pulses
+        else:
+            raise ValueError
 
         val = schedule2[what]
         schedule1[what] = val
 
-    def plot_couplings(self, plot: bool = True, name: str = "", phase=True, amp=True):
+    def plot_couplings(
+        self, plot: bool = True, name: str = "", phase=True, amp=True
+    ) -> Any:
+        """Función que hace el plot de las funciones de acople con sus pares.
+
+        Args:
+            plot (bool, optional): Si se desea devolver la figura o no. Defaults to True.
+            name (str, optional): Nombre del plot. Defaults to "".
+            phase (bool, optional): Si se desea indicar las fases de los pulsos. Defaults to True.
+            amp (bool, optional): Si se desea indicar las amplitudes de los pulsos. Defaults to True.
+
+        Returns:
+            Any: Figura del plot.
+        """
         times = self.times
         p_pulses = {}
 
@@ -175,7 +213,18 @@ class RydbergQubitSchedule:
 
         plt.show()
 
-    def plot_detunings(self, plot: bool = True, name: str = ""):
+    def plot_detunings(self, plot: bool = True, name: str = "") -> Any:
+        """Función que hace el plot de las funciones de las desintonizaciones con sus pares.
+
+        Args:
+            plot (bool, optional): Si se desea devolver la figura o no. Defaults to True.
+            name (str, optional): Nombre del plot. Defaults to "".
+            phase (bool, optional): Si se desea indicar las fases de los pulsos. Defaults to True.
+            amp (bool, optional): Si se desea indicar las amplitudes de los pulsos. Defaults to True.
+
+        Returns:
+            Any: Figura del plot.
+        """
         times = self.times
         p_pulses = {}
 
@@ -221,14 +270,17 @@ class RydbergQubitSchedule:
 
         plt.show()
 
-    def plot_all(self, name=""):
-        self.plot_couplings(name=name)
-        self.plot_detunings(name=name)
+    def plot_all(self):
+        r"""Función que realiza el grafico de los acoples y las desintonizaciones."""
+        self.plot_couplings()
+        self.plot_detunings()
 
 
 class RydbergRegisterSchedule:
+    r"""Clase que contiene los parámetros del schedule dedicado para un registro de átomos."""
+
     def __init__(self, schedules: List[RydbergQubitSchedule], **kwargs):
-        if "backend" in kwargs.keys():
+        if "backend" in kwargs:
             backend_config = kwargs["backend"]
             assert isinstance(backend_config, BackendConfig)
 
@@ -238,20 +290,24 @@ class RydbergRegisterSchedule:
             self.backend_config = default_backend
 
         simulation_config = self.backend_config.simulation_config
-        SAMPLING = simulation_config.sampling
-        BITDEPTH = simulation_config.bitdepth
-        T_MAX = simulation_config.time_simulation
+        sampling = simulation_config.sampling
+        bitdepth = simulation_config.bitdepth
+        t_max = simulation_config.time_simulation
 
         self.schedules = schedules
         self.times = aqipt.general_params(
-            {"sampling": SAMPLING, "bitdepth": BITDEPTH, "time_dyn": T_MAX}
+            {"sampling": sampling, "bitdepth": bitdepth, "time_dyn": t_max}
         ).timebase()
         self.n_qubits = len(schedules)
 
     def plot_schedule(self, couplings=True, detunings=False):
-        for i in range(len(self.schedules)):
-            schedule = self.schedules[i]
+        """Función que genera los graficos de todos los schedules del registro.
 
+        Args:
+            couplings (bool, optional): Si se desean ver los acoples. Defaults to True.
+            detunings (bool, optional): Si se desean ver las desintonizaciones. Defaults to False.
+        """
+        for i, schedule in enumerate(self.schedules):
             if couplings:
                 schedule.plot_couplings(name=f" {i}")
 

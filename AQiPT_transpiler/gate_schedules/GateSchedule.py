@@ -1,12 +1,21 @@
-from ..rydberg_blocks.shaped_pulses import *
-from ..rydberg_blocks.rydberg_qubits import *
-from ..config.core import default_backend
+import numpy as np
+from ..rydberg_blocks.shaped_pulses import CERO_FUNCTION
+from ..rydberg_blocks.rydberg_qubits import RydbergQubitSchedule
+from ..config.core import default_backend, BackendConfig
 
 
 class GateSchedule:
     def __init__(
         self, t_start: float, freq: float, pair: list, shape: str, **kwargs
     ) -> None:
+        r"""Clase que contiene las bases fundamentales del schedule de una compuerta.
+
+        Args:
+            t_start (float): Tiempo de inicio del schedule.
+            freq (float): Frecuencia normal para los pulsos dentro del schedule.
+            pair (list): Par de estados necesarios paral el schedule.
+            shape (str): Forma normal de los pulsos dentro del schedule.
+        """
         self.t_start = t_start
         self.t_end = t_start
         self.freq = freq
@@ -30,6 +39,11 @@ class GateSchedule:
 
 
 def CeroSchedule() -> RydbergQubitSchedule:
+    """Definición del schedule de valor nulo.
+
+    Returns:
+        RydbergQubitSchedule: Retorno del schedule.
+    """
     couplings = [
         ([0, 1], CERO_FUNCTION.function),
     ]

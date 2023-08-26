@@ -1,10 +1,36 @@
-from ..rydberg_blocks.shaped_pulses import *
-from ..rydberg_blocks.rydberg_qubits import *
+from typing import Optional
+import numpy as np
 from ..gate_schedules.GateSchedule import GateSchedule
 from ..gate_schedules.UxySchedule import UxySchedule
 
 
 class PCUxySchedule(GateSchedule):
+    r"""Este es el schedule para la compuerta pCUxy en átomos de Rydberg.
+
+    **Representación matricial:**
+
+    .. math::
+
+        pCU_{xy} = \qty( 
+        \begin{array}{c c c c}
+            \cos{(\theta/2)} & s(\theta, \varphi) & s(\theta, \varphi) & 0  \\
+            s(\theta, -\varphi) & \cos^2{(\theta/4)} & -\sin^2{(\theta/4)} & 0 \\
+            s(\theta, -\varphi) & -\sin^2{(\theta/4)} & \cos^2{(\theta/4)} & 0 \\
+            0 & 0 & 0 & 1 
+        \end{array}
+    ) 
+    
+    s(\theta, \varphi) = -i\sin{(\theta/2)e^{i\varphi}}/\sqrt{2}
+
+    **Operador evolución:**
+
+    .. math::
+        
+         \hat{U} = \exp{-i\qty(\hat{H}^{01}_c + \hat{H}^{01}_t + \hat{H}^{1111}_{c,t})\tau_g}.
+
+    
+    """
+
     def __init__(
         self,
         theta: float = np.pi,
@@ -12,9 +38,11 @@ class PCUxySchedule(GateSchedule):
         t_start: float = 1,
         freq: float = 1,
         shape: str = "square",
-        pair: list = [0, 1],
+        pair: Optional[list] = None,
         **kwargs
     ) -> None:
+        if pair is None:
+            pair = [0, 1]
         super().__init__(t_start, freq, pair, shape, **kwargs)
 
         self.theta = theta

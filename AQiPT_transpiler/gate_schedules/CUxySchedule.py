@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 from ..gate_schedules.GateSchedule import GateSchedule
 from ..gate_schedules.UxySchedule import UxySchedule
@@ -5,16 +6,45 @@ from ..gate_schedules.RxSchedule import RxSchedule
 
 
 class CUxySchedule(GateSchedule):
+    r"""
+    Este es el schedule de la versión controlada de CUxy. 
+    
+    **Representación matricial:**
+
+    .. math::
+
+        \newcommand{\th}{\frac{\theta}{2}}
+
+        CU_{x,y}(\theta, \varphi)\ q_0, q_1 =
+            U_{xy}(\theta,\varphi) \otimes |0\rangle\langle 0| +
+            I \otimes |1\rangle\langle 1| =
+        \begin{pmatrix}
+            \cos{(\th)} & -i \sin{(\th)e^{-i\varphi}} & 0 & 0 \\
+            -i\sin{(\th)e^{+i\varphi}} & \cos{(\th)} & 0 & 0 \\
+            0 & 0 & 1 & 0 \\
+            0 & 0 & 0 & 1 \\
+        \end{pmatrix}
+    
+    **Operador evolución:**
+
+    .. math::
+        
+        \hat{U} = \exp{-i\qty(\hat{H}^{01}_t+\hat{H}^{1111}_{c,t})\tau_g}.    
+
+    """
+
     def __init__(
         self,
         theta: float = np.pi,
         phi: float = 0,
         t_start: float = 1,
-        freq: float = 1,
-        pair: list = [[1, 3], [0, 3]],
+        freq: float = 1.0,
+        pair: Optional[list] = None,
         shape: str = "square",
         **kwargs
     ) -> None:
+        if pair is None:
+            pair = [[1, 3], [0, 3]]
         super().__init__(t_start, freq, pair, shape)
 
         self.theta = theta
