@@ -1,6 +1,6 @@
 from typing import Optional
 import numpy as np
-from ..gate_schedules.UxySchedule import UxySchedule
+from .uxy_schedule import UxySchedule
 
 
 class RzSchedule(UxySchedule):

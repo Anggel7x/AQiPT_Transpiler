@@ -30,12 +30,10 @@ def transpilation_rule(func: Callable) -> Callable:
     def extract_backend(*args, **kwargs):
         if "backend" in kwargs.keys():
             backend_config = kwargs["backend"]
-            assert isinstance(backend_config, BackendConfig)
-
-            backend_config = backend_config
-
         else:
             backend_config = default_backend
+
+        assert isinstance(backend_config, BackendConfig)
 
         transpiler_config = backend_config.transpiler_config
         t_wait = transpiler_config.t_wait

@@ -1,7 +1,7 @@
 from typing import Optional
 import numpy as np
-from ..gate_schedules.GateSchedule import GateSchedule
-from ..gate_schedules.RxSchedule import RxSchedule
+from .gate_schedule import GateSchedule
+from .rx_schedule import RxSchedule
 from ..utils.schedules_utils import freq_given_phi
 
 

@@ -1,7 +1,7 @@
 from typing import Optional
 import numpy as np
-from ..gate_schedules.GateSchedule import GateSchedule
-from ..gate_schedules.UxySchedule import UxySchedule
+from .gate_schedule import GateSchedule
+from .uxy_schedule import UxySchedule
 
 
 class PCUxySchedule(GateSchedule):

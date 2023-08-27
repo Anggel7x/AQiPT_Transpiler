@@ -2,7 +2,7 @@ from typing import Optional
 import numpy as np
 from ..rydberg_blocks.shaped_pulses import SquarePulse, GaussianPulse
 from ..rydberg_blocks.rydberg_qubits import RydbergQubitSchedule
-from ..gate_schedules.GateSchedule import GateSchedule, CERO_FUNCTION
+from .gate_schedule import GateSchedule, CERO_FUNCTION
 from ..utils.schedules_utils import coupling_detuning_constructors
 
 

@@ -7,7 +7,7 @@ from AQiPT_transpiler.rydberg_blocks.rydberg_schedules import (
     RydbergQubitSchedule,
     RydbergRegisterSchedule,
 )
-from AQiPT_transpiler.gate_schedules.UxySchedule import CERO_FUNCTION
+from AQiPT_transpiler.gate_schedules.uxy_schedule import CERO_FUNCTION
 from AQiPT_transpiler.config.core import BackendConfig, default_backend
 
 
