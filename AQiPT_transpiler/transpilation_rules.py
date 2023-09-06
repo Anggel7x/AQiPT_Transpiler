@@ -585,7 +585,7 @@ def cx_rule(
     if num_qubits != 2:
         raise ValueError(f"Number of qubits {num_qubits} != 2")
 
-    theta = params[0]
+    theta = np.pi
     phi = 0
     ctrl, targt = qubits[0], qubits[1]
 
@@ -666,6 +666,66 @@ def cp_rule(
     CP = CphaseSchedule(
         t_start=t_start, phi11=phi11, freq=freq, shape=shape, backend=kwargs["backend"]
     )
+
+    circuit_schedule[str(ctrl)][0].append(CP.q_schedule[0])
+    circuit_schedule[str(targt)][0].append(CP.q_schedule[1])
+
+    circuit_schedule[str(ctrl)][1] = CP.t_end + t_wait
+    circuit_schedule[str(targt)][1] = CP.t_end + t_wait
+
+
+@transpilation_rule
+def cz_rule(
+    name: str,
+    params: List[float],
+    num_qubits: int,
+    qubits: List[int],
+    circuit_schedule: Dict[str, List],
+    **kwargs,
+):
+    """The application for the cp transpilation rule.
+
+    Args:
+        name (str): Name of the gate received. Must be equalt to "cp"
+        params (List[float]): List of parameters for the gate, phi_11
+        num_qubits (int): Number of qubits where the gate is applied
+        qubits (List[int]): List of integer index for the qubits
+        circuit_schedule (Dict[str, List]): Dictionary containing the prototype of the circuit schedule.
+
+    Raises:
+        ValueError: The name does not match "cp"
+        ValueError: The number of qubits is different of 2
+    """
+
+    t_wait = kwargs["t_wait"]
+    freq = kwargs["freq"]
+    shape = kwargs["shape"]
+
+    if name != "cp" or name != "":
+        raise ValueError(f"Name {name} does not match for this rule")
+
+    if num_qubits != 2:
+        raise ValueError(f"Number of qubits {num_qubits} != 2")
+
+    phi11 = np.pi
+    ctrl, targt = qubits[0], qubits[1]
+
+    # Get the qubit list of schedules and end time
+    control_info = circuit_schedule[str(ctrl)]
+    control_t_end = control_info[1]
+
+    # Get the qubit list of schedules and end time
+    target_info = circuit_schedule[str(targt)]
+    target_t_end = target_info[1]
+
+    t_start = max(
+        [qubit_info[1] for qubit_info in circuit_schedule.values()]
+    )  # We must wait for both qubits to be free
+    CP = CphaseSchedule(
+        t_start=t_start, phi11=phi11, freq=freq, shape=shape, backend=kwargs["backend"]
+    )
+
+    print(kwargs["backend"])
 
     circuit_schedule[str(ctrl)][0].append(CP.q_schedule[0])
     circuit_schedule[str(targt)][0].append(CP.q_schedule[1])
@@ -805,4 +865,5 @@ transpilation_rules = {
     "xy": xy_rule,
     "iswap": iswap_rule,
     "swap": iswap_rule,
+    "cz": cz_rule,
 }

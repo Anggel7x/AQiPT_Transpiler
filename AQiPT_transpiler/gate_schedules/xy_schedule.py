@@ -81,7 +81,7 @@ class XYSchedule(GateSchedule):
 
         # 3: Same as before but phase -Pi
         p3 = SquarePulse(
-            t_start=p2.t_end * 1.2, area=2 * np.pi / omega2, backend=self.backend_config
+            t_start=p2.t_end, area=2 * np.pi / omega2, backend=self.backend_config
         )
         p3_t = SquarePulse(
             t_start=p3.t_start, t_end=p3.t_end, backend=self.backend_config
@@ -102,7 +102,7 @@ class XYSchedule(GateSchedule):
         p, q = self.pair[0], self.pair[1]
         couplings = [(p, p1.function), (q, p2.function), (q, p3_com), (p, p4_com)]
 
-        detuning = [([1, 1], CERO_FUNCTION.function)]
+        detuning = [([1, 1], CERO_FUNCTION(backend=self.backend_config).function)]
 
         coup, detun = coupling_detuning_constructors(
             couplings, detuning, omega_coup=[omega1, omega2, omega2, omega1]

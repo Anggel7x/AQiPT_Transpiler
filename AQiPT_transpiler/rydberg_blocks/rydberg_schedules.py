@@ -25,7 +25,7 @@ class RydbergQubitSchedule:
             self.backend_config = backend_config
 
         else:
-            self.backend_config = default_backend
+            self.backend_config = None
 
         simulation_config = self.backend_config.simulation_config
         sampling = simulation_config.sampling
@@ -287,7 +287,7 @@ class RydbergRegisterSchedule:
             self.backend_config = backend_config
 
         else:
-            self.backend_config = default_backend
+            self.backend_config = None
 
         simulation_config = self.backend_config.simulation_config
         sampling = simulation_config.sampling

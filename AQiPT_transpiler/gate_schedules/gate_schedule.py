@@ -1,4 +1,5 @@
 import numpy as np
+
 from ..rydberg_blocks.shaped_pulses import CERO_FUNCTION
 from ..rydberg_blocks.rydberg_qubits import RydbergQubitSchedule
 from ..config.core import default_backend, BackendConfig
@@ -38,26 +39,26 @@ class GateSchedule:
         return self.q_schedule
 
 
-def CeroSchedule() -> RydbergQubitSchedule:
-    """Definición del schedule de valor nulo.
+# def CeroSchedule() -> RydbergQubitSchedule:
+#     """Definición del schedule de valor nulo.
 
-    Returns:
-        RydbergQubitSchedule: Retorno del schedule.
-    """
-    couplings = [
-        ([0, 1], CERO_FUNCTION.function),
-    ]
+#     Returns:
+#         RydbergQubitSchedule: Retorno del schedule.
+#     """
+#     couplings = [
+#         ([0, 1], CERO_FUNCTION.function),
+#     ]
 
-    detunings = [([1, 1], CERO_FUNCTION.function)]
+#     detunings = [([1, 1], CERO_FUNCTION.function)]
 
-    coupling1 = {}
-    for i, coupling in enumerate(couplings):
-        levels, coupling = coupling
-        coupling1["Coupling" + str(i)] = [levels, 0, coupling]
+#     coupling1 = {}
+#     for i, coupling in enumerate(couplings):
+#         levels, coupling = coupling
+#         coupling1["Coupling" + str(i)] = [levels, 0, coupling]
 
-    detuning1 = {}
-    for i, detuning in enumerate(detunings):
-        levels, detuning = detuning
-        detuning1["Detuning" + str(i)] = [levels, 0, detuning]
+#     detuning1 = {}
+#     for i, detuning in enumerate(detunings):
+#         levels, detuning = detuning
+#         detuning1["Detuning" + str(i)] = [levels, 0, detuning]
 
-    return RydbergQubitSchedule(coupling_pulses=coupling1, detuning_pulses=detuning1)
+#     return RydbergQubitSchedule(coupling_pulses=coupling1, detuning_pulses=detuning1)

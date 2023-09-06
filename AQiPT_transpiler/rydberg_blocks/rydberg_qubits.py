@@ -2,8 +2,9 @@ from typing import Any, List, Dict, Optional, Union
 import matplotlib.pyplot as plt
 from itertools import product
 import qutip as qt
-from AQiPT.modules.emulator import AQiPTemulator as emulator
 from AQiPT import AQiPTcore as aqipt
+from AQiPT.modules.emulator import AQiPTemulator as emulator
+
 
 from ..config.core import BackendConfig, default_backend
 from ..rydberg_blocks.rydberg_schedules import (
@@ -44,8 +45,6 @@ class RydbergQubit:
         nr_levels = self.nr_levels
         psi0 = self.initial_state
 
-        times = self.schedule.times
-
         couplings_q = self.schedule.coupling_pulses
         detunings_q = self.schedule.detuning_pulses
         dissipators_q = self.dissipators
@@ -60,7 +59,7 @@ class RydbergQubit:
 
         simulation_config = self.backend_config.simulation_config
         pulsed_qubit = emulator.atomicModel(
-            times,
+            self.schedule.times,
             nr_levels,
             psi0,
             sim_params_q,
@@ -162,12 +161,12 @@ class RydbergQuantumRegister:
             self.backend_config = default_backend
 
         simulation_config = self.backend_config.simulation_config
-        SAMPLING = simulation_config.sampling
-        BITDEPTH = simulation_config.bitdepth
-        T_MAX = simulation_config.time_simulation
+        sampling = simulation_config.sampling
+        bitdepth = simulation_config.bitdepth
+        t_max = simulation_config.time_simulation
 
         self.times = aqipt.general_params(
-            {"sampling": SAMPLING, "bitdepth": BITDEPTH, "time_dyn": T_MAX}
+            {"sampling": sampling, "bitdepth": bitdepth, "time_dyn": t_max}
         ).timebase()
 
         self.atomic_register = None

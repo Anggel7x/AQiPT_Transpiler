@@ -8,6 +8,5 @@ from .rz_schedule import RzSchedule
 # 2 qubits schedules
 
 from .cuxy_schedule import CUxySchedule
-from .PCUxySchedule import PCUxySchedule
 from .cphase_schedule import CphaseSchedule
 from .xy_schedule import XYSchedule

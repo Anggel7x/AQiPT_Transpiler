@@ -39,7 +39,7 @@ class ShapedPulse:
             self.backend_config = backend_config
 
         else:
-            self.backend_config = default_backend
+            self.backend_config = None
 
         simulation_config = self.backend_config.simulation_config
         t_max = simulation_config.time_simulation
@@ -121,6 +121,7 @@ class GaussianPulse(ShapedPulse):
         t_p = np.linspace(
             0, self.tp_window, int((self.tp_window - 0) * sampling / t_max)
         )
+
         func = control.function(t_p, args_list).gaussian()
         return func
 
@@ -200,4 +201,8 @@ class SquarePulse(ShapedPulse):
 
 
 # Constant Pulses
-CERO_FUNCTION = SquarePulse(t_start=0, t_end=0, amp=0)
+
+
+def CERO_FUNCTION(**kwargs):
+    s_p = SquarePulse(t_start=0, t_end=0, amp=0, **kwargs)
+    return s_p

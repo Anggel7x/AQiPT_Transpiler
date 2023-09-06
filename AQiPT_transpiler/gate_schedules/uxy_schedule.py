@@ -68,7 +68,7 @@ class UxySchedule(GateSchedule):
 
         coupling = [(self.pair, complx_pulse_1)]
 
-        detuning = [([1, 1], CERO_FUNCTION.function)]
+        detuning = [([1, 1], CERO_FUNCTION(backend=self.backend_config).function)]
 
         coup, detun = coupling_detuning_constructors(
             coupling, detuning, omega_coup=omega

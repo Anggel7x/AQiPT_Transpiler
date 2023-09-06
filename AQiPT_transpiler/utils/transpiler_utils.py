@@ -1,5 +1,5 @@
-from typing import List, Tuple, Dict, Callable
-from AQiPT_transpiler.utils.rydberg_gates import RydbergQuantumCircuit
+from typing import List, Tuple, Callable
+from AQiPT_transpiler.utils.rydberg_circuit import RydbergQuantumCircuit
 from AQiPT_transpiler.transpilation_rules import (
     transpilation_rules as default_transp_rules,
 )
@@ -11,13 +11,13 @@ from AQiPT_transpiler.gate_schedules.uxy_schedule import CERO_FUNCTION
 from AQiPT_transpiler.config.core import BackendConfig, default_backend
 
 
-def get_transpilation_rule(name: str, transpilation_rules: Dict) -> Callable:
+def get_transpilation_rule(name: str, transpilation_rules: dict) -> Callable:
     r"""Función que retorna la regla de transpilación asociada al nombre
     de una compuerta.
 
     Args:
         name (str): Nombre de la compuerta.
-        transpilation_rules (Dict): Reglas de transpilación disponibles.
+        transpilation_rules (dict): Reglas de transpilación disponibles.
 
     Raises:
         ValueError: Si la regla de transpilación para el nombre no existe.
@@ -56,7 +56,7 @@ def extract_qc_data(
     return gates
 
 
-def circuit_schedule_init(num_qubits: int) -> Dict:
+def circuit_schedule_init(num_qubits: int) -> dict:
     r"""Inicializa la estructura auxiliar del circuit schedule
 
     circuit_schedule = {
@@ -67,7 +67,7 @@ def circuit_schedule_init(num_qubits: int) -> Dict:
         num_qubits (int): Número de qubits del circuito.
 
     Returns:
-        Dict: La estructura auxiliar vacia construidoa.
+        dict: La estructura auxiliar vacia construidoa.
     """
     circuit_schedule = {}
 
@@ -155,7 +155,13 @@ def construct_register_schedule(
                 **kwargs,
             )
         else:
-            qubit_couplings = {"Coupling0": [[0, 1], 0, CERO_FUNCTION.function]}
+            qubit_couplings = {
+                "Coupling0": [
+                    [0, 1],
+                    0,
+                    CERO_FUNCTION(backend=kwargs["backend"]).function,
+                ]
+            }
             qubit_schedule = RydbergQubitSchedule(
                 coupling_pulses=qubit_couplings,
                 detuning_pulses=qubit_couplings,
@@ -164,12 +170,12 @@ def construct_register_schedule(
 
         register_schedule.append(qubit_schedule)
 
-    return RydbergRegisterSchedule(register_schedule)
+    return RydbergRegisterSchedule(register_schedule, **kwargs)
 
 
 def qc_to_ryd(
     qc: RydbergQuantumCircuit,
-    transpilation_rules: Dict = default_transp_rules,
+    transpilation_rules: dict = default_transp_rules,
     backend: BackendConfig = default_backend,
 ) -> RydbergRegisterSchedule:
     r"""Transpila un RydbergQuantumCircuit y lo devuelve en su forma
@@ -177,7 +183,7 @@ def qc_to_ryd(
 
     Args:
         qc (RydbergQuantumCircuit): Circuito a transpilar.
-        transpilation_rules (Dict, optional): Reglas de transpilación a utilizar. Defaults to default_transp_rules.
+        transpilation_rules (dict, optional): Reglas de transpilación a utilizar. Defaults to default_transp_rules.
         backend (BackendConfig, optional): Configuración del backend a utilizar. Defaults to default_backend.
 
     Returns:
