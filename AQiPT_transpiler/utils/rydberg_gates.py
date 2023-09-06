@@ -78,7 +78,7 @@ class RydbergHGate(Gate):
         Definición matricial de la transformación como un numpy.array
         """
 
-        return 1 / np.sqrt(2) * -1j * np.array([[1, 1], [-1, 1]], dtype=dtype)
+        return 1 / np.sqrt(2) * -1j * np.array([[-1, 1], [1, 1]], dtype=dtype)
 
 
 class RydbergRxGate(Gate):

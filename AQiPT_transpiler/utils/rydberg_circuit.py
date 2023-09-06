@@ -203,7 +203,7 @@ class RydbergCPhase(Gate):
         """
         Definición circuital de la transformación a base de un operador matricial.
         """
-        phi11 = self.params
+        phi11 = self.params[0]
         e00 = np.exp(1j * 0)
         e01 = np.exp(1j * np.pi)
         e10 = np.exp(1j * np.pi)
@@ -218,7 +218,8 @@ class RydbergCPhase(Gate):
                     [0, e01, 0, 0],
                     [0, 0, e10, 0],
                     [0, 0, 0, e11],
-                ]
+                ],
+                dtype=complex,
             )
         )
         qc.unitary(cp, [0, 1])
@@ -293,7 +294,7 @@ class RydbergXYGate(Gate):
         """
         Definición circuital de la transformación a base de un operador matricial.
         """
-        theta = self.params
+        theta = self.params[0]
 
         qc = RydbergQuantumCircuit(2, name=self.name)
 
@@ -304,7 +305,8 @@ class RydbergXYGate(Gate):
                     [0, np.cos(theta / 2), -1j * np.sin(theta / 2), 0],
                     [0, -1j * np.sin(theta / 2), np.cos(theta / 2), 0],
                     [0, 0, 0, 1],
-                ]
+                ],
+                dtype=complex,
             )
         )
         qc.unitary(xy, [0, 1])
@@ -314,7 +316,7 @@ class RydbergXYGate(Gate):
         """
         Definición matricial de la transformación como un numpy.array
         """
-        theta = self.params
+        theta = self.params[0]
 
         return np.array(
             [

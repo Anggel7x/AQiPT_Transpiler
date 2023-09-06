@@ -75,12 +75,12 @@ class XYSchedule(GateSchedule):
         )
 
         # 2: Pulse from 1 -> r' at Omega 2, 2Pi Pulse
-        p2 = SquarePulse(
+        p2 = GaussianPulse(
             t_start=p1.t_end, area=2 * np.pi / omega2, backend=self.backend_config
         )
 
         # 3: Same as before but phase -Pi
-        p3 = SquarePulse(
+        p3 = GaussianPulse(
             t_start=p2.t_end, area=2 * np.pi / omega2, backend=self.backend_config
         )
         p3_t = SquarePulse(

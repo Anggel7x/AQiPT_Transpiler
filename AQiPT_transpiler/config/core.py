@@ -24,7 +24,7 @@ class SimulationConfig(BaseSettings):
     bitdepth: int = 16
     nsteps: int = 10000
     rtol: float = 1e6
-    max_steps: float = 10e6
+    max_steps: float = 10e-6
     store_states: bool = True
 
 
