@@ -5,7 +5,7 @@ from ..config.core import BackendConfig, default_backend
 
 
 class ShapedPulse:
-    r"""CLase que contiene los parametros de un pulso."""
+    r"""Clase que contiene los parametros de un pulso."""
 
     def __init__(
         self,
