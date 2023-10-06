@@ -5,8 +5,6 @@ venv/
 docs/
 saved_sims/
 extras/
-notebooks/
-*.ipynb
 *.png
 *.csv
 *.bmp
@@ -14,3 +12,4 @@ notebooks/
 *.pickle
 *.rar
 fidelities/
+notebooks_old/
